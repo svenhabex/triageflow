@@ -6,8 +6,8 @@ from typing import Any
 
 from langgraph.graph import END, START, StateGraph
 
+from ...state import WorkflowState
 from ..main_graph import TriageWorkflow
-from ..state import WorkflowState
 
 
 class PatientSpecificWorkflow(TriageWorkflow):

@@ -73,6 +73,13 @@
         "verbose": false,
         "debug": false
       }
+    },
+    "run-dev": {
+      "executor": "@nxlv/python:run-commands",
+      "options": {
+        "command": "uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000",
+        "cwd": "{projectRoot}"
+      }
     }
   },
   "tags": [],

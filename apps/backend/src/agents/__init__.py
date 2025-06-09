@@ -1,3 +1,3 @@
-from .intake import IntakeAgent
+from .intake import intake_agent
 
-__all__ = ["IntakeAgent"]
+__all__ = ["intake_agent"]

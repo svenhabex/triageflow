@@ -1,6 +1,7 @@
-from backend.api import agents
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from src.api import router
 
 app = FastAPI(title="TriageFlow API", version="1.0.0")
 
@@ -12,4 +13,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(agents.router, prefix="/api/agents", tags=["agents"])
+app.include_router(router, prefix="/api/agents", tags=["agents"])

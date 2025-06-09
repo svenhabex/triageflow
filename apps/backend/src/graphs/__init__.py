@@ -2,7 +2,7 @@
 Graphs package for orchestrating multi-agent workflows.
 """
 
-from .main_graph import TriageWorkflow
-from .state import WorkflowState
+from ..state import IntakeConversationInfo, WorkflowState
+from .main_graph import triage_workflow
 
-__all__ = ["TriageWorkflow", "WorkflowState"]
+__all__ = ["triage_workflow", "WorkflowState", "IntakeConversationInfo"]

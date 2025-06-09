@@ -1,33 +1,17 @@
-"""
-Intake Agent Subgraph
+import os
+from typing import Any
 
-This agent receives a conversation between a patient and a nurse, along with a patient ID.
-It extracts patient information from the conversation and retrieves patient history.
-
-It extracts the following information:
-- Patient name
-- Patient age
-- Patient gender
-- Patient symptoms
-- Patient medical history
-- Patient vital signs
-- Patient allergies
-- Patient medications
-"""
-
-import re
-from datetime import datetime
-from typing import Any, Dict, List
-
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.tools import tool
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 
-from ..graphs.state import WorkflowState
+from src.state import IntakeConversationInfo, WorkflowState
 
 
 # Mock database functions (to be replaced with real database calls later)
 @tool
-def get_patient_details(patient_id: str) -> Dict[str, Any]:
+def get_patient_details(patient_id: str) -> dict[str, Any]:
     """
     Mock function to get patient details from database.
     Later this will be replaced with actual database calls.
@@ -77,42 +61,60 @@ def get_patient_details(patient_id: str) -> Dict[str, Any]:
     )
 
 
+def _get_model():
+    """Get the ChatGoogleGenerativeAI model, initialized lazily."""
+    return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash-preview-05-20",
+        temperature=1.0,
+        max_retries=1,
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+    )
+
+
+EXTRACT_CONVERSATION_INFO_NODE = "extract_conversation_info"
+GET_PATIENT_HISTORY_NODE = "get_patient_history"
+VALIDATE_AND_COMPILE_NODE = "validate_and_compile"
+
+
 class IntakeAgent:
-    """Intake agent implemented as a LangGraph subgraph."""
+    """
+    Intake agent, extracts information from a conversation between a nurse and patient.
+    The agent is a LangGraph graph.
+    """
 
     def __init__(self):
         self.graph = self._build_graph()
         self.app = self.graph.compile()
+        self._model = None
+
+    @property
+    def model(self):
+        """Lazily initialize the model when first accessed."""
+        if self._model is None:
+            self._model = _get_model()
+        return self._model
 
     def _build_graph(self) -> StateGraph:
-        """Build the intake agent subgraph."""
+        """Build the intake agent graph."""
 
         workflow = StateGraph(WorkflowState)
 
-        # Add nodes
-        workflow.add_node("extract_conversation_info", self._extract_conversation_info)
-        workflow.add_node("get_patient_history", self._get_patient_history)
-        workflow.add_node("validate_and_compile", self._validate_and_compile)
+        workflow.add_node(
+            EXTRACT_CONVERSATION_INFO_NODE, self._extract_conversation_info
+        )
 
-        # Set entry point and edges
-        workflow.set_entry_point("extract_conversation_info")
-        workflow.add_edge("extract_conversation_info", "get_patient_history")
-        workflow.add_edge("get_patient_history", "validate_and_compile")
-        workflow.add_edge("validate_and_compile", END)
+        workflow.set_entry_point(EXTRACT_CONVERSATION_INFO_NODE)
+        workflow.add_edge(EXTRACT_CONVERSATION_INFO_NODE, END)
 
         return workflow
 
-    async def _extract_conversation_info(self, state: WorkflowState) -> Dict[str, Any]:
-        """Extract patient information from the conversation."""
+    async def _extract_conversation_info(self, state: WorkflowState) -> WorkflowState:
+        """Extract patient information from the conversation using LLM."""
 
         # Get the last message which should contain the conversation
         messages = state.get("messages", [])
         if not messages:
-            return {
-                "errors": state.get("errors", [])
-                + ["No conversation found in messages"],
-                "extracted_info": {},
-            }
+            return state
 
         # Get the last message content
         last_message = messages[-1]
@@ -122,12 +124,50 @@ class IntakeAgent:
             else str(last_message)
         )
 
-        # Extract information using pattern matching (simplified approach)
-        extracted_info = self._parse_conversation(conversation)
+        # Extract information using LLM
+        try:
+            extracted_info = await self._llm_parse_conversation(conversation)
+        except Exception as e:
+            return {
+                **state,
+                "errors": [f"Error extracting conversation info: {str(e)}"],
+            }
 
-        return {"extracted_info": extracted_info, "conversation_analyzed": True}
+        return {**state, "intake_conversation_info": extracted_info}
 
-    async def _get_patient_history(self, state: WorkflowState) -> Dict[str, Any]:
+    async def _llm_parse_conversation(self, conversation: str) -> dict[str, Any]:
+        """Use LLM to parse conversation and extract patient information."""
+
+        system_prompt = """
+            You are a medical intake specialist. 
+            Extract key patient information from the conversation.
+            The conversation is between a nurse and patient.
+            
+            Guidelines:
+            - Extract symptoms mentioned by the patient
+            - Look for pain ratings on a 1-10 scale
+            - Summarize the conversation into a single sentence as the chief complaint
+            - Extract any additional notes from the conversation
+            - Be precise and only include information explicitly mentioned
+            - Use null for missing information
+            """
+
+        human_prompt = f"""Extract patient information from this conversation:
+            {conversation}
+            """
+
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=human_prompt),
+        ]
+
+        structured_model = self._model.with_structured_output(IntakeConversationInfo)
+
+        response = await structured_model.ainvoke(messages)
+
+        return response
+
+    async def _get_patient_history(self, state: WorkflowState) -> dict[str, Any]:
         """Retrieve patient history from the database."""
 
         patient_id = None
@@ -151,170 +191,12 @@ class IntakeAgent:
 
         return {"patient_details": patient_details, "patient_history_retrieved": True}
 
-    async def _validate_and_compile(self, state: WorkflowState) -> Dict[str, Any]:
-        """Validate extracted information and compile final intake data."""
-
-        extracted_info = state.get("extracted_info", {})
-        patient_details = state.get("patient_details", {})
-
-        # Merge extracted info with patient details
-        compiled_data = {
-            "patient_id": patient_details.get("patient_id", "unknown"),
-            "name": extracted_info.get("name")
-            or patient_details.get("name", "Unknown"),
-            "age": extracted_info.get("age") or patient_details.get("age"),
-            "gender": extracted_info.get("gender") or patient_details.get("gender"),
-            "current_symptoms": extracted_info.get("symptoms", []),
-            "reported_pain_level": extracted_info.get("pain_level"),
-            "chief_complaint": extracted_info.get("chief_complaint"),
-            "medical_history": patient_details.get("medical_history", []),
-            "allergies": patient_details.get("allergies", []),
-            "current_medications": patient_details.get("current_medications", []),
-            "vital_signs": extracted_info.get("vital_signs", {}),
-            "emergency_contact": patient_details.get("emergency_contact"),
-            "timestamp": datetime.now().isoformat(),
-        }
-
-        # Check for emergency flags
-        emergency_keywords = [
-            "chest pain",
-            "difficulty breathing",
-            "severe pain",
-            "unconscious",
-            "bleeding heavily",
-        ]
-        emergency_flag = any(
-            keyword in str(extracted_info.get("symptoms", [])).lower()
-            for keyword in emergency_keywords
-        )
-
-        # Check if information is incomplete
-        required_fields = ["current_symptoms", "chief_complaint"]
-        incomplete_info = any(not compiled_data.get(field) for field in required_fields)
-
-        return {
-            "intake_completed": True,
-            "intake_data": {
-                **compiled_data,
-                "emergency_flag": emergency_flag,
-                "incomplete_info": incomplete_info,
-                "confidence_score": self._calculate_confidence_score(compiled_data),
-                "next_steps": self._determine_next_steps(
-                    compiled_data, emergency_flag, incomplete_info
-                ),
-            },
-        }
-
-    def _parse_conversation(self, conversation: str) -> Dict[str, Any]:
-        """Parse conversation text to extract patient information."""
-
-        extracted_info = {}
-        conversation_lower = conversation.lower()
-
-        # Extract symptoms
-        symptoms = []
-        symptom_keywords = [
-            "pain",
-            "headache",
-            "fever",
-            "nausea",
-            "dizziness",
-            "cough",
-            "fatigue",
-        ]
-        for keyword in symptom_keywords:
-            if keyword in conversation_lower:
-                symptoms.append(keyword)
-
-        # Extract pain level (1-10 scale)
-        pain_match = re.search(
-            r"pain.*?(\d+)(?:\s*(?:out of|/)\s*10)?", conversation_lower
-        )
-        pain_level = int(pain_match.group(1)) if pain_match else None
-
-        # Extract age
-        age_match = re.search(
-            r"(?:age|years old|year old).*?(\d+)|(\d+).*?(?:years old|year old)",
-            conversation_lower,
-        )
-        age = int(age_match.group(1) or age_match.group(2)) if age_match else None
-
-        # Extract name (simple pattern)
-        name_match = re.search(
-            r"(?:my name is|i am|i\'m)\s+([a-zA-Z\s]+)", conversation_lower
-        )
-        name = name_match.group(1).strip().title() if name_match else None
-
-        # Extract chief complaint (first sentence often contains it)
-        sentences = conversation.split(".")
-        chief_complaint = sentences[0].strip() if sentences else None
-
-        # Extract vital signs if mentioned
-        vital_signs = {}
-        bp_match = re.search(r"blood pressure.*?(\d+)/(\d+)", conversation_lower)
-        if bp_match:
-            vital_signs["blood_pressure"] = f"{bp_match.group(1)}/{bp_match.group(2)}"
-
-        temp_match = re.search(r"temperature.*?(\d+\.?\d*)", conversation_lower)
-        if temp_match:
-            vital_signs["temperature"] = float(temp_match.group(1))
-
-        extracted_info.update(
-            {
-                "symptoms": symptoms,
-                "pain_level": pain_level,
-                "age": age,
-                "name": name,
-                "chief_complaint": chief_complaint,
-                "vital_signs": vital_signs,
-            }
-        )
-
-        return extracted_info
-
-    def _calculate_confidence_score(self, data: Dict[str, Any]) -> float:
-        """Calculate confidence score based on completeness of data."""
-
-        required_fields = ["current_symptoms", "chief_complaint"]
-        optional_fields = ["name", "age", "pain_level", "vital_signs"]
-
-        required_score = sum(1 for field in required_fields if data.get(field))
-        optional_score = sum(0.5 for field in optional_fields if data.get(field))
-
-        max_score = len(required_fields) + len(optional_fields) * 0.5
-        total_score = required_score + optional_score
-
-        return min(total_score / max_score, 1.0)
-
-    def _determine_next_steps(
-        self, data: Dict[str, Any], emergency_flag: bool, incomplete_info: bool
-    ) -> List[str]:
-        """Determine recommended next steps based on intake data."""
-
-        next_steps = []
-
-        if emergency_flag:
-            next_steps.append("immediate_medical_attention")
-            next_steps.append("notify_emergency_team")
-        elif incomplete_info:
-            next_steps.append("collect_additional_information")
-        else:
-            next_steps.append("proceed_to_triage")
-
-        if data.get("vital_signs"):
-            next_steps.append("review_vital_signs")
-
-        if data.get("current_medications"):
-            next_steps.append("check_medication_interactions")
-
-        return next_steps
-
-    async def run(self, state: WorkflowState) -> Dict[str, Any]:
+    async def run(self, state: WorkflowState) -> dict[str, Any]:
         """Run the intake agent subgraph."""
 
         result = await self.app.ainvoke(state)
+
         return result
 
 
-# Create singleton instance
 intake_agent = IntakeAgent()

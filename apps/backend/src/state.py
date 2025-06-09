@@ -2,12 +2,22 @@
 Shared state definitions for the multi-agent workflow system.
 """
 
-from typing import Any, Literal, Optional
+from operator import add
+from typing import Annotated, Any, Literal, Optional
 
 from langgraph.graph import MessagesState
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from ..core.config import config
+from src.core import config
+
+
+class IntakeConversationInfo(BaseModel):
+    """Information about a conversation"""
+
+    symptoms: list[str] = Field(description="list of symptoms")
+    pain_level: int = Field(description="pain level on a 1-10 scale")
+    chief_complaint: str = Field(description="main reason for visit")
+    additional_notes: str = Field(description="any other relevant information")
 
 
 class PatientInfo(BaseModel):
@@ -40,17 +50,13 @@ class WorkflowState(MessagesState):
     patient_info: Optional[PatientInfo] = None
 
     # Agent outputs
-    intake_completed: bool = False
-    intake_data: Optional[dict[str, Any]] = None
-
-    triage_completed: bool = False
-    triage_decision: Optional[TriageDecision] = None
+    intake_conversation_info: Optional[IntakeConversationInfo] = None
 
     # Workflow control
     last_node: Optional[str] = None
 
     # Error handling
-    errors: list[str] = []
+    errors: Annotated[list[str], add] = []
     retry_count: int = 0
 
     # Additional context
