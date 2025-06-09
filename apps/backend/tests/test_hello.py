@@ -1,6 +1,6 @@
 """Hello unit test module."""
 
-from backend.hello import hello
+from apps.backend.src.main import hello
 
 
 def test_hello():
