@@ -1,0 +1,54 @@
+{
+  "generators": {
+    "feature": {
+      "factory": "./src/generators/feature/generator",
+      "schema": "./src/generators/feature/schema.json",
+      "description": "feature generator"
+    },
+    "shell": {
+      "factory": "./src/generators/shell/generator",
+      "schema": "./src/generators/shell/schema.json",
+      "description": "shell generator"
+    },
+    "data-access": {
+      "factory": "./src/generators/data-access/generator",
+      "schema": "./src/generators/data-access/schema.json",
+      "description": "data-access generator"
+    },
+    "api": {
+      "factory": "./src/generators/api/generator",
+      "schema": "./src/generators/api/schema.json",
+      "description": "api generator"
+    },
+    "models": {
+      "factory": "./src/generators/models/generator",
+      "schema": "./src/generators/models/schema.json",
+      "description": "models generator"
+    },
+    "ui": {
+      "factory": "./src/generators/ui/generator",
+      "schema": "./src/generators/ui/schema.json",
+      "description": "ui generator"
+    },
+    "utils": {
+      "factory": "./src/generators/utils/generator",
+      "schema": "./src/generators/utils/schema.json",
+      "description": "utils generator"
+    },
+    "state": {
+      "factory": "./src/generators/state/generator",
+      "schema": "./src/generators/state/schema.json",
+      "description": "state generator"
+    },
+    "guard": {
+      "factory": "./src/generators/guard/generator",
+      "schema": "./src/generators/guard/schema.json",
+      "description": "guard generator"
+    },
+    "const": {
+      "factory": "./src/generators/const/generator",
+      "schema": "./src/generators/const/schema.json",
+      "description": "const generator"
+    }
+  }
+}

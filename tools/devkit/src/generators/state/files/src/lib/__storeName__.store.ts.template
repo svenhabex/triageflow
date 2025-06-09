@@ -1,0 +1,13 @@
+import { signalStore, withState } from '@ngrx/signals';
+
+type <%=storeClassName%>State = {
+  isLoading: boolean;
+};
+
+const initialState: <%=storeClassName%>State = {
+  isLoading: false,
+};
+
+export const <%=storeClassName%>Store = signalStore(
+  withState(initialState)
+);

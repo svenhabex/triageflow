@@ -2,7 +2,7 @@
   "name": "triageflow",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "prefix": "app",
+  "prefix": "flow",
   "sourceRoot": "apps/triageflow/src",
   "tags": [],
   "targets": {
@@ -13,7 +13,7 @@
         "outputPath": "dist/apps/triageflow",
         "index": "apps/triageflow/src/index.html",
         "browser": "apps/triageflow/src/main.ts",
-        "polyfills": ["zone.js"],
+        "polyfills": [],
         "tsConfig": "apps/triageflow/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [{ "glob": "**/*", "input": "apps/triageflow/public" }],

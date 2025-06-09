@@ -1,0 +1,48 @@
+{
+  "name": "devkit",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/devkit/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/tools/devkit",
+        "main": "tools/devkit/src/index.ts",
+        "tsConfig": "tools/devkit/tsconfig.lib.json",
+        "assets": [
+          "tools/devkit/*.md",
+          {
+            "input": "./tools/devkit/src",
+            "glob": "**/!(*.ts)",
+            "output": "./src"
+          },
+          {
+            "input": "./tools/devkit/src",
+            "glob": "**/*.d.ts",
+            "output": "./src"
+          },
+          {
+            "input": "./tools/devkit",
+            "glob": "generators.json",
+            "output": "."
+          },
+          {
+            "input": "./tools/devkit",
+            "glob": "executors.json",
+            "output": "."
+          }
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../coverage/tools/devkit"
+      }
+    }
+  }
+}

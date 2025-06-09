@@ -14,7 +14,11 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@triageflow/devkit": ["tools/devkit/src/index.ts"],
+      "@triageflow/shared/shell": ["libs/shared/shell/src/index.ts"],
+      "@triageflow/shared/ui": ["libs/shared/ui/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

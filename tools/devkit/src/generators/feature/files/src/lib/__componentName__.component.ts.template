@@ -1,0 +1,11 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+
+@Component({
+  selector: 'flow-<%=componentName%>',
+  templateUrl: '<%=componentName%>.component.html',
+  styleUrls: ['<%=componentName%>.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [],
+})
+export class <%=componentClassName%>Component {
+}

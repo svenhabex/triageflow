@@ -1,6 +1,7 @@
 {
-    "nxConsole.generateAiAgentRules": true,
-    "python.defaultInterpreterPath": "./apps/backend/.venv/bin/python",
-    "python.terminal.activateEnvironment": true,
-    "python.analysis.autoSearchPaths": true
+  "nxConsole.generateAiAgentRules": true,
+  "python.defaultInterpreterPath": "./apps/backend/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.autoSearchPaths": true,
+  "eslint.validate": ["json"]
 }

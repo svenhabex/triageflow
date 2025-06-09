@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "Guard",
+  "title": "",
+  "type": "object",
+  "properties": {
+    "domain": {
+      "type": "string",
+      "description": "",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What domain would you like to use?"
+    },
+    "name": {
+      "type": "string",
+      "default": "guard",
+      "description": "The name of the library"
+    }
+  },
+  "required": [
+    "domain"
+  ]
+}
