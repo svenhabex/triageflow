@@ -16,13 +16,8 @@
         "polyfills": ["zone.js"],
         "tsConfig": "apps/triageflow/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
-        "assets": [
-          {
-            "glob": "**/*",
-            "input": "apps/triageflow/public"
-          }
-        ],
-        "styles": ["apps/triageflow/src/styles.scss"],
+        "assets": [{ "glob": "**/*", "input": "apps/triageflow/public" }],
+        "styles": ["apps/triageflow/src/styles.css"],
         "scripts": []
       },
       "configurations": {
