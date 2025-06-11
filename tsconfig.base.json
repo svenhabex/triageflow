@@ -16,8 +16,11 @@
     "baseUrl": ".",
     "paths": {
       "@triageflow/devkit": ["tools/devkit/src/index.ts"],
+      "@triageflow/feat-tracker": ["libs/patient/feat-tracker/src/index.ts"],
+      "@triageflow/shared/models": ["libs/shared/models/src/index.ts"],
       "@triageflow/shared/shell": ["libs/shared/shell/src/index.ts"],
-      "@triageflow/shared/ui": ["libs/shared/ui/src/index.ts"]
+      "@triageflow/shared/ui": ["libs/shared/ui/src/index.ts"],
+      "@triageflow/shell": ["libs/patient/shell/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

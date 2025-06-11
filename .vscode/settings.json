@@ -3,5 +3,8 @@
   "python.defaultInterpreterPath": "./apps/backend/.venv/bin/python",
   "python.terminal.activateEnvironment": true,
   "python.analysis.autoSearchPaths": true,
-  "eslint.validate": ["json"]
+  "eslint.validate": [
+    "json"
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

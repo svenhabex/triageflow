@@ -1,1 +1,18 @@
-<p>Sidebar works!</p>
+<div class="h-full p-4 min-w-[350px]">
+  <div
+    class="flex flex-col gap-8 p-4 border-1 border-surface-100 bg-white rounded-3xl shadow-xl h-full"
+  >
+    <div class="flex justify-center items-center">
+      <img
+        ngSrc="/img/triageflow-light.svg"
+        alt="TriageFlow"
+        width="200"
+        height="50"
+        priority
+      />
+    </div>
+    <div class="flex flex-col">
+      <flow-navigation [items]="items"></flow-navigation>
+    </div>
+  </div>
+</div>
