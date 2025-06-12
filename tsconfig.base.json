@@ -17,6 +17,9 @@
     "paths": {
       "@triageflow/devkit": ["tools/devkit/src/index.ts"],
       "@triageflow/feat-tracker": ["libs/patient/feat-tracker/src/index.ts"],
+      "@triageflow/feat-triage-tracker": [
+        "libs/patient/feat-triage-tracker/src/index.ts"
+      ],
       "@triageflow/shared/models": ["libs/shared/models/src/index.ts"],
       "@triageflow/shared/shell": ["libs/shared/shell/src/index.ts"],
       "@triageflow/shared/ui": ["libs/shared/ui/src/index.ts"],

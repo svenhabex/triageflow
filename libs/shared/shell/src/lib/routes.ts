@@ -1,5 +1,13 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  // add routes here
+  {
+    path: '',
+    redirectTo: 'flows',
+    pathMatch: 'full',
+  },
+  {
+    path: '**',
+    redirectTo: 'flows',
+  },
 ];

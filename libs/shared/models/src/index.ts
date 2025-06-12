@@ -1,1 +1,2 @@
-export * from './lib/shared.model';
+export * from './lib/flow.model';
+export * from './lib/navigation.model';

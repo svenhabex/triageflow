@@ -1,10 +1,14 @@
 {
-  "nxConsole.generateAiAgentRules": true,
-  "python.defaultInterpreterPath": "./apps/backend/.venv/bin/python",
-  "python.terminal.activateEnvironment": true,
-  "python.analysis.autoSearchPaths": true,
-  "eslint.validate": [
-    "json"
-  ],
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "eslint.validate": ["javascript", "typescript"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.formatOnSave": true,
+  "eslint.format.enable": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "eslint.alwaysShowStatus": true,
+  "eslint.run": "onSave",
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

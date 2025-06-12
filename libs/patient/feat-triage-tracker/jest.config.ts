@@ -1,8 +1,8 @@
 export default {
-  displayName: 'feat-tracker',
+  displayName: 'feat-triage-tracker',
   preset: '../../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
-  coverageDirectory: '../../../coverage/libs/patient/feat-tracker',
+  coverageDirectory: '../../../coverage/libs/patient/feat-triage-tracker',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
       'jest-preset-angular',
