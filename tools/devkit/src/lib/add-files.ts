@@ -3,7 +3,11 @@ import * as path from 'path';
 
 import { NormalizedSchemaType } from './normalized-schema';
 
-export function addFiles<T>(tree: Tree, options: T & NormalizedSchemaType, dirname: string): void {
+export function addFiles<T>(
+  tree: Tree,
+  options: T & NormalizedSchemaType,
+  dirname: string,
+): void {
   const templateOptions = {
     ...options,
     ...names(options.name),
@@ -11,5 +15,10 @@ export function addFiles<T>(tree: Tree, options: T & NormalizedSchemaType, dirna
     domainFileName: names(options.domain).fileName,
     template: '',
   };
-  generateFiles(tree, path.join(dirname, 'files'), options.projectRoot, templateOptions);
+  generateFiles(
+    tree,
+    path.join(dirname, 'files'),
+    options.projectRoot,
+    templateOptions,
+  );
 }

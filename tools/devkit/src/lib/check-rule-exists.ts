@@ -1,4 +1,8 @@
-export function checkRuleExists(filePath: string, rule: string, rules: object): boolean {
+export function checkRuleExists(
+  filePath: string,
+  rule: string,
+  rules: object,
+): boolean {
   if (!rules['rules']) {
     // eslint-disable-next-line no-console
     console.info(`${filePath}: rules expected`);
@@ -25,7 +29,9 @@ export function checkRuleExists(filePath: string, rule: string, rules: object): 
 
   if (!Array.isArray(rules['rules'][rule][1]['depConstraints'])) {
     // eslint-disable-next-line no-console
-    console.info(`${filePath}: ${rule}.1.depConstraints expected to be an array.`);
+    console.info(
+      `${filePath}: ${rule}.1.depConstraints expected to be an array.`,
+    );
     return false;
   }
 

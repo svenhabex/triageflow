@@ -1,5 +1,11 @@
 import { libraryGenerator } from '@nx/angular/generators';
-import { formatFiles, getWorkspaceLayout, joinPathFragments, names, Tree } from '@nx/devkit';
+import {
+  formatFiles,
+  getWorkspaceLayout,
+  joinPathFragments,
+  names,
+  Tree,
+} from '@nx/devkit';
 
 import { ShellGeneratorSchema } from './schema';
 import { addFiles } from '../../lib/add-files';
@@ -8,10 +14,16 @@ import { updateDomainDepConst } from '../../lib/update-domain-dep-const';
 
 type NormalizedSchema = ShellGeneratorSchema & BaseNormaliedSchemaType;
 
-function normalizeOptions(tree: Tree, options: ShellGeneratorSchema): NormalizedSchema {
+function normalizeOptions(
+  tree: Tree,
+  options: ShellGeneratorSchema,
+): NormalizedSchema {
   const fileName = names(options.name).fileName;
-  const name = fileName === 'shell' ? fileName : `shell-${names(options.name).fileName}`;
-  const projectDirectory = options.domain ? `${names(options.domain).fileName}/${name}` : name;
+  const name =
+    fileName === 'shell' ? fileName : `shell-${names(options.name).fileName}`;
+  const projectDirectory = options.domain
+    ? `${names(options.domain).fileName}/${name}`
+    : name;
   const projectName = 'shell';
   const domainDirectory = `${getWorkspaceLayout(tree).libsDir}/${options.domain}`;
   const projectRoot = `${getWorkspaceLayout(tree).libsDir}/${projectDirectory}`;
@@ -28,7 +40,10 @@ function normalizeOptions(tree: Tree, options: ShellGeneratorSchema): Normalized
   };
 }
 
-export default async function (tree: Tree, options: ShellGeneratorSchema): Promise<void> {
+export default async function (
+  tree: Tree,
+  options: ShellGeneratorSchema,
+): Promise<void> {
   const normalizedOptions = normalizeOptions(tree, options);
 
   await libraryGenerator(tree, {

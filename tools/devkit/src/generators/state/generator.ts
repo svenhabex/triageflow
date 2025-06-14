@@ -1,5 +1,11 @@
 import { libraryGenerator } from '@nx/angular/generators';
-import { formatFiles, getWorkspaceLayout, joinPathFragments, names, Tree } from '@nx/devkit';
+import {
+  formatFiles,
+  getWorkspaceLayout,
+  joinPathFragments,
+  names,
+  Tree,
+} from '@nx/devkit';
 
 import { StateGeneratorSchema } from './schema';
 import { addFiles } from '../../lib/add-files';
@@ -12,11 +18,16 @@ type NormalizedSchema = StateGeneratorSchema &
     storeClassName: string;
   };
 
-function normalizeOptions(tree: Tree, options: StateGeneratorSchema): NormalizedSchema {
+function normalizeOptions(
+  tree: Tree,
+  options: StateGeneratorSchema,
+): NormalizedSchema {
   const name = `state-${names(options.name).fileName}`;
   const storeName = names(options.name).fileName;
   const storeClassName = names(options.name).className;
-  const projectDirectory = options.domain ? `${names(options.domain).fileName}/${name}` : name;
+  const projectDirectory = options.domain
+    ? `${names(options.domain).fileName}/${name}`
+    : name;
   const projectName = projectDirectory.replace(new RegExp('/', 'g'), '-');
   const domainDirectory = `${getWorkspaceLayout(tree).libsDir}/${options.domain}`;
   const projectRoot = `${getWorkspaceLayout(tree).libsDir}/${projectDirectory}`;
@@ -35,7 +46,10 @@ function normalizeOptions(tree: Tree, options: StateGeneratorSchema): Normalized
   };
 }
 
-export default async function stateGenerator(tree: Tree, options: StateGeneratorSchema): Promise<void> {
+export default async function stateGenerator(
+  tree: Tree,
+  options: StateGeneratorSchema,
+): Promise<void> {
   const normalizedOptions = normalizeOptions(tree, options);
 
   await libraryGenerator(tree, {

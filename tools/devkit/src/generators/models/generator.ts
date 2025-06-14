@@ -1,5 +1,11 @@
 import { libraryGenerator } from '@nx/angular/generators';
-import { formatFiles, getWorkspaceLayout, joinPathFragments, names, Tree } from '@nx/devkit';
+import {
+  formatFiles,
+  getWorkspaceLayout,
+  joinPathFragments,
+  names,
+  Tree,
+} from '@nx/devkit';
 
 import { ModelsGeneratorSchema } from './schema';
 import { addFiles } from '../../lib/add-files';
@@ -8,14 +14,23 @@ import { updateDomainDepConst } from '../../lib/update-domain-dep-const';
 
 type NormalizedSchema = ModelsGeneratorSchema & BaseNormaliedSchemaType;
 
-function normalizeOptions(tree: Tree, options: ModelsGeneratorSchema): NormalizedSchema {
+function normalizeOptions(
+  tree: Tree,
+  options: ModelsGeneratorSchema,
+): NormalizedSchema {
   const fileName = names(options.name).fileName;
-  const name = fileName === 'models' ? fileName : `models-${names(options.name).fileName}`;
-  const projectDirectory = options.domain ? `${names(options.domain).fileName}/${name}` : name;
+  const name =
+    fileName === 'models' ? fileName : `models-${names(options.name).fileName}`;
+  const projectDirectory = options.domain
+    ? `${names(options.domain).fileName}/${name}`
+    : name;
   const projectName = projectDirectory.replace(new RegExp('/', 'g'), '-');
   const domainDirectory = `${getWorkspaceLayout(tree).libsDir}/${options.domain}`;
   const projectRoot = `${getWorkspaceLayout(tree).libsDir}/${projectDirectory}`;
-  const parsedTags = ['type:models', `domain:${names(options.domain).fileName}`];
+  const parsedTags = [
+    'type:models',
+    `domain:${names(options.domain).fileName}`,
+  ];
 
   return {
     ...options,
@@ -28,7 +43,10 @@ function normalizeOptions(tree: Tree, options: ModelsGeneratorSchema): Normalize
   };
 }
 
-export default async function (tree: Tree, options: ModelsGeneratorSchema): Promise<void> {
+export default async function (
+  tree: Tree,
+  options: ModelsGeneratorSchema,
+): Promise<void> {
   const normalizedOptions = normalizeOptions(tree, options);
 
   await libraryGenerator(tree, {
@@ -38,7 +56,12 @@ export default async function (tree: Tree, options: ModelsGeneratorSchema): Prom
     skipModule: true,
   });
 
-  const pathToDelete = joinPathFragments('libs', normalizedOptions.projectDirectory, 'src', 'lib');
+  const pathToDelete = joinPathFragments(
+    'libs',
+    normalizedOptions.projectDirectory,
+    'src',
+    'lib',
+  );
   if (tree.exists(pathToDelete)) {
     tree.delete(pathToDelete);
   }

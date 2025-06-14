@@ -1,9 +1,9 @@
+import { definePreset, palette } from '@primeng/themes';
+import Aura from '@primeng/themes/aura';
+import { PrimeNG } from 'primeng/config';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { definePreset, palette } from '@primeng/themes';
 import { NavigationItem } from '@triageflow/shared/models';
-import { PrimeNG } from 'primeng/config';
-import Aura from '@primeng/themes/aura';
 
 @Component({
   imports: [RouterModule],
@@ -29,8 +29,6 @@ export class AppComponent {
   constructor() {
     const triageFlowPrimaryPaletteLight = palette('#6069CE');
     const triageFlowPrimaryPaletteDark = palette('#858DE5');
-
-    console.log(triageFlowPrimaryPaletteLight);
 
     const triageFlowPreset = definePreset(Aura, {
       semantic: {

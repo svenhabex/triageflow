@@ -2,7 +2,10 @@ import { Tree } from '@nx/devkit';
 
 import { checkRuleExists } from './check-rule-exists';
 
-export function updateDepConst(host: Tree, update: (depConst: Array<object>) => void): void {
+export function updateDepConst(
+  host: Tree,
+  update: (depConst: Array<object>) => void,
+): void {
   let filePath = 'tslint.json';
   let rule = 'nx-enforce-module-boundaries';
 
@@ -19,7 +22,9 @@ export function updateDepConst(host: Tree, update: (depConst: Array<object>) => 
       console.info('Did not find .eslintrc.json but found .eslintrc');
     } else {
       // eslint-disable-next-line no-console
-      console.info('Cannot add linting rules: linting config file does not exist');
+      console.info(
+        'Cannot add linting rules: linting config file does not exist',
+      );
       return;
     }
   }
@@ -30,7 +35,8 @@ export function updateDepConst(host: Tree, update: (depConst: Array<object>) => 
   if (rules['overrides']) {
     const overrides = rules['overrides'];
     rules = overrides.find(
-      (e: { rules: { [x: string]: unknown } }) => e.rules && e.rules['@nx/enforce-module-boundaries'],
+      (e: { rules: { [x: string]: unknown } }) =>
+        e.rules && e.rules['@nx/enforce-module-boundaries'],
     );
   }
 

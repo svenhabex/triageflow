@@ -1,5 +1,11 @@
 import { libraryGenerator } from '@nx/angular/generators';
-import { formatFiles, getWorkspaceLayout, joinPathFragments, names, Tree } from '@nx/devkit';
+import {
+  formatFiles,
+  getWorkspaceLayout,
+  joinPathFragments,
+  names,
+  Tree,
+} from '@nx/devkit';
 
 import { ApiGeneratorSchema } from './schema';
 import { addFiles } from '../../lib/add-files';
@@ -12,9 +18,14 @@ type NormalizedSchema = ApiGeneratorSchema &
     consumer: string;
   };
 
-function normalizeOptions(tree: Tree, options: ApiGeneratorSchema): NormalizedSchema {
+function normalizeOptions(
+  tree: Tree,
+  options: ApiGeneratorSchema,
+): NormalizedSchema {
   const name = `api-${names(options.name).fileName}`;
-  const projectDirectory = options.domain ? `${names(options.domain).fileName}/${name}` : name;
+  const projectDirectory = options.domain
+    ? `${names(options.domain).fileName}/${name}`
+    : name;
   const projectName = projectDirectory.replace(new RegExp('/', 'g'), '-');
   const domainDirectory = `${getWorkspaceLayout(tree).libsDir}/${options.domain}`;
   const projectRoot = `${getWorkspaceLayout(tree).libsDir}/${projectDirectory}`;
@@ -27,7 +38,10 @@ function normalizeOptions(tree: Tree, options: ApiGeneratorSchema): NormalizedSc
   return {
     ...options,
     name,
-    consumer: names(options.name).fileName.split('/').slice(-1)[0].replace('api-', ''),
+    consumer: names(options.name)
+      .fileName.split('/')
+      .slice(-1)[0]
+      .replace('api-', ''),
     projectName,
     projectRoot,
     projectDirectory,
@@ -37,22 +51,30 @@ function normalizeOptions(tree: Tree, options: ApiGeneratorSchema): NormalizedSc
 }
 
 function updateConsumerDepConst(tree: Tree, options: NormalizedSchema): void {
-  updateDepConst(tree, (depConst: { sourceTag: string; onlyDependOnLibsWithTags: string[] }[]) => {
-    const index = depConst.findIndex((d) => d.sourceTag === `domain:${options.consumer}`);
+  updateDepConst(
+    tree,
+    (depConst: { sourceTag: string; onlyDependOnLibsWithTags: string[] }[]) => {
+      const index = depConst.findIndex(
+        (d) => d.sourceTag === `domain:${options.consumer}`,
+      );
 
-    if (index && !!depConst[index]) {
-      depConst[index] = {
-        ...depConst[index],
-        onlyDependOnLibsWithTags: [
-          ...depConst[index].onlyDependOnLibsWithTags,
-          `domain:${names(options.domain).fileName}/${options.name}`,
-        ],
-      };
-    }
-  });
+      if (index && !!depConst[index]) {
+        depConst[index] = {
+          ...depConst[index],
+          onlyDependOnLibsWithTags: [
+            ...depConst[index].onlyDependOnLibsWithTags,
+            `domain:${names(options.domain).fileName}/${options.name}`,
+          ],
+        };
+      }
+    },
+  );
 }
 
-export default async function (tree: Tree, options: ApiGeneratorSchema): Promise<void> {
+export default async function (
+  tree: Tree,
+  options: ApiGeneratorSchema,
+): Promise<void> {
   const normalizedOptions = normalizeOptions(tree, options);
 
   await libraryGenerator(tree, {
@@ -62,7 +84,12 @@ export default async function (tree: Tree, options: ApiGeneratorSchema): Promise
     skipModule: true,
   });
 
-  const pathToDelete = joinPathFragments('libs', normalizedOptions.projectDirectory, 'src', 'lib');
+  const pathToDelete = joinPathFragments(
+    'libs',
+    normalizedOptions.projectDirectory,
+    'src',
+    'lib',
+  );
   if (tree.exists(pathToDelete)) {
     tree.delete(pathToDelete);
   }

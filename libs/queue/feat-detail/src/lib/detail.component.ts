@@ -60,9 +60,9 @@ export class DetailComponent {
           hour: '2-digit',
           minute: '2-digit',
           hour12: false,
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
 
   queueItemsViewModel = computed(() =>
@@ -70,7 +70,7 @@ export class DetailComponent {
       ...item,
       bgColorClass: this.getQueueItemBgColorClass(item.type),
       borderClass: this.getQueueItemBorderClass(item.type),
-    }))
+    })),
   );
 
   protected readonly queueSeverityEnum = queueSeverityEnum;

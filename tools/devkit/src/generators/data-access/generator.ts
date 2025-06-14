@@ -1,5 +1,11 @@
 import { libraryGenerator } from '@nx/angular/generators';
-import { formatFiles, getWorkspaceLayout, joinPathFragments, names, Tree } from '@nx/devkit';
+import {
+  formatFiles,
+  getWorkspaceLayout,
+  joinPathFragments,
+  names,
+  Tree,
+} from '@nx/devkit';
 
 import { DataAccessGeneratorSchema } from './schema';
 import { addFiles } from '../../lib/add-files';
@@ -8,14 +14,25 @@ import { updateDomainDepConst } from '../../lib/update-domain-dep-const';
 
 type NormalizedSchema = DataAccessGeneratorSchema & BaseNormaliedSchemaType;
 
-function normalizeOptions(tree: Tree, options: DataAccessGeneratorSchema): NormalizedSchema {
+function normalizeOptions(
+  tree: Tree,
+  options: DataAccessGeneratorSchema,
+): NormalizedSchema {
   const fileName = names(options.name).fileName;
-  const name = fileName === 'data-access' ? fileName : `data-access-${names(options.name).fileName}`;
-  const projectDirectory = options.domain ? `${names(options.domain).fileName}/${name}` : name;
+  const name =
+    fileName === 'data-access'
+      ? fileName
+      : `data-access-${names(options.name).fileName}`;
+  const projectDirectory = options.domain
+    ? `${names(options.domain).fileName}/${name}`
+    : name;
   const projectName = projectDirectory.replace(new RegExp('/', 'g'), '-');
   const domainDirectory = `${getWorkspaceLayout(tree).libsDir}/${options.domain}`;
   const projectRoot = `${getWorkspaceLayout(tree).libsDir}/${projectDirectory}`;
-  const parsedTags = ['type:data-access', `domain:${names(options.domain).fileName}`];
+  const parsedTags = [
+    'type:data-access',
+    `domain:${names(options.domain).fileName}`,
+  ];
 
   return {
     ...options,
@@ -28,7 +45,10 @@ function normalizeOptions(tree: Tree, options: DataAccessGeneratorSchema): Norma
   };
 }
 
-export default async function (tree: Tree, options: DataAccessGeneratorSchema): Promise<void> {
+export default async function (
+  tree: Tree,
+  options: DataAccessGeneratorSchema,
+): Promise<void> {
   const normalizedOptions = normalizeOptions(tree, options);
 
   await libraryGenerator(tree, {
@@ -38,7 +58,12 @@ export default async function (tree: Tree, options: DataAccessGeneratorSchema): 
     skipModule: true,
   });
 
-  const pathToDelete = joinPathFragments('libs', normalizedOptions.projectDirectory, 'src', 'lib');
+  const pathToDelete = joinPathFragments(
+    'libs',
+    normalizedOptions.projectDirectory,
+    'src',
+    'lib',
+  );
   if (tree.exists(pathToDelete)) {
     tree.delete(pathToDelete);
   }

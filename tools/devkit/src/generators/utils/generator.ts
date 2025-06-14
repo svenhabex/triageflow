@@ -1,5 +1,11 @@
 import { libraryGenerator } from '@nx/angular/generators';
-import { formatFiles, getWorkspaceLayout, joinPathFragments, names, Tree } from '@nx/devkit';
+import {
+  formatFiles,
+  getWorkspaceLayout,
+  joinPathFragments,
+  names,
+  Tree,
+} from '@nx/devkit';
 
 import { UtilsGeneratorSchema } from './schema';
 import { addFiles } from '../../lib/add-files';
@@ -8,10 +14,16 @@ import { updateDomainDepConst } from '../../lib/update-domain-dep-const';
 
 type NormalizedSchema = UtilsGeneratorSchema & BaseNormaliedSchemaType;
 
-function normalizeOptions(tree: Tree, options: UtilsGeneratorSchema): NormalizedSchema {
+function normalizeOptions(
+  tree: Tree,
+  options: UtilsGeneratorSchema,
+): NormalizedSchema {
   const fileName = names(options.name).fileName;
-  const name = fileName === 'utils' ? fileName : `utils-${names(options.name).fileName}`;
-  const projectDirectory = options.domain ? `${names(options.domain).fileName}/${name}` : name;
+  const name =
+    fileName === 'utils' ? fileName : `utils-${names(options.name).fileName}`;
+  const projectDirectory = options.domain
+    ? `${names(options.domain).fileName}/${name}`
+    : name;
   const projectName = projectDirectory.replace(new RegExp('/', 'g'), '-');
   const domainDirectory = `${getWorkspaceLayout(tree).libsDir}/${options.domain}`;
   const projectRoot = `${getWorkspaceLayout(tree).libsDir}/${projectDirectory}`;
@@ -28,7 +40,10 @@ function normalizeOptions(tree: Tree, options: UtilsGeneratorSchema): Normalized
   };
 }
 
-export default async function (tree: Tree, options: UtilsGeneratorSchema): Promise<void> {
+export default async function (
+  tree: Tree,
+  options: UtilsGeneratorSchema,
+): Promise<void> {
   const normalizedOptions = normalizeOptions(tree, options);
 
   await libraryGenerator(tree, {
@@ -38,7 +53,12 @@ export default async function (tree: Tree, options: UtilsGeneratorSchema): Promi
     skipModule: true,
   });
 
-  const pathToDelete = joinPathFragments('libs', normalizedOptions.projectDirectory, 'src', 'lib');
+  const pathToDelete = joinPathFragments(
+    'libs',
+    normalizedOptions.projectDirectory,
+    'src',
+    'lib',
+  );
   if (tree.exists(pathToDelete)) {
     tree.delete(pathToDelete);
   }

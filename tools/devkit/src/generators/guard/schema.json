@@ -19,7 +19,5 @@
       "description": "The name of the library"
     }
   },
-  "required": [
-    "domain"
-  ]
+  "required": ["domain"]
 }

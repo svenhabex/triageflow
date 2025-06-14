@@ -1,5 +1,11 @@
 import { libraryGenerator } from '@nx/angular/generators';
-import { formatFiles, getWorkspaceLayout, joinPathFragments, names, Tree } from '@nx/devkit';
+import {
+  formatFiles,
+  getWorkspaceLayout,
+  joinPathFragments,
+  names,
+  Tree,
+} from '@nx/devkit';
 
 import { UiGeneratorSchema } from './schema';
 import { addFiles } from '../../lib/add-files';
@@ -11,9 +17,13 @@ type NormalizedSchema = UiGeneratorSchema &
     componentName: string;
   };
 
-function normalizeOptions(tree: Tree, options: UiGeneratorSchema): NormalizedSchema {
+function normalizeOptions(
+  tree: Tree,
+  options: UiGeneratorSchema,
+): NormalizedSchema {
   const fileName = names(options.name).fileName;
-  const name = fileName === 'ui' ? fileName : `ui-${names(options.name).fileName}`;
+  const name =
+    fileName === 'ui' ? fileName : `ui-${names(options.name).fileName}`;
   const componentName = name;
   const projectDirectory = `${names(options.domain).fileName}/${name}`;
   const projectName = projectDirectory.replace(new RegExp('/', 'g'), '-');
@@ -33,7 +43,10 @@ function normalizeOptions(tree: Tree, options: UiGeneratorSchema): NormalizedSch
   };
 }
 
-export default async function (tree: Tree, options: UiGeneratorSchema): Promise<void> {
+export default async function (
+  tree: Tree,
+  options: UiGeneratorSchema,
+): Promise<void> {
   const normalizedOptions = normalizeOptions(tree, options);
 
   await libraryGenerator(tree, {

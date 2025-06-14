@@ -1,14 +1,17 @@
+import { ButtonModule } from 'primeng/button';
 import { NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
 } from '@angular/core';
-import { NavigationComponent } from '../navigation/navigation.component';
+import { Router } from '@angular/router';
 import { FlowList, FlowType, NavigationItem } from '@triageflow/shared/models';
-import { ButtonModule } from 'primeng/button';
+
+import { NavigationComponent } from '../navigation/navigation.component';
 
 @Component({
   selector: 'flow-sidebar',
@@ -20,6 +23,8 @@ import { ButtonModule } from 'primeng/button';
   imports: [NgOptimizedImage, NavigationComponent, ButtonModule],
 })
 export class SidebarComponent {
+  readonly #router = inject(Router);
+
   readonly navigationItems = input<NavigationItem[]>([]);
   readonly flows = input<FlowList[]>([]);
 
@@ -36,7 +41,9 @@ export class SidebarComponent {
     }));
   });
 
-  onAddFlow(type: FlowType) {
-    this.addFlow.emit(type);
+  onAddFlow(type: FlowType): void {
+    this.#router.navigate(['/patient/tracker'], {
+      state: { flowType: type },
+    });
   }
 }

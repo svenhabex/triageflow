@@ -1,14 +1,16 @@
 <div class="flex flex-col gap-1">
   @for (item of items(); track $index) {
-  <a
-    routerLinkActive="text-primary-500 bg-primary-50 font-bold"
-    class="flex gap-3 items-center p-2 rounded-sm hover:bg-surface-50 transition-all duration-200 ease-in-out"
-    [routerLink]="item.route"
-  >
-    <div class="flex items-center justify-center p-2 bg-surface-50 rounded-sm">
-      <i [class]="'pi text-xl ' + item.icon"></i>
-    </div>
-    <p class="text-sm">{{ item.label }}</p>
-  </a>
+    <a
+      routerLinkActive="text-primary-500 bg-primary-50 font-bold"
+      class="flex gap-3 items-center p-2 rounded-sm hover:bg-surface-50 transition-all duration-200 ease-in-out"
+      [routerLink]="item.route"
+    >
+      <div
+        class="flex items-center justify-center p-2 bg-surface-50 rounded-sm"
+      >
+        <i [class]="'pi text-xl ' + item.icon"></i>
+      </div>
+      <p class="text-sm">{{ item.label }}</p>
+    </a>
   }
 </div>
