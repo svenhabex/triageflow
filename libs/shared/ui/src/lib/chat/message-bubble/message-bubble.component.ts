@@ -4,8 +4,7 @@ import {
   computed,
   input,
 } from '@angular/core';
-
-import { MessageSender, MessageSenderEnum } from '../chat.types';
+import { MessageSender, MessageSenderEnum } from '@triageflow/shared/models';
 
 @Component({
   selector: 'flow-message-bubble',

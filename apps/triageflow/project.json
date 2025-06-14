@@ -22,6 +22,12 @@
       },
       "configurations": {
         "production": {
+          "fileReplacements": [
+            {
+              "replace": "apps/triageflow/src/environments/environment.ts",
+              "with": "apps/triageflow/src/environments/environment.prod.ts"
+            }
+          ],
           "budgets": [
             {
               "type": "initial",
@@ -37,6 +43,12 @@
           "outputHashing": "all"
         },
         "development": {
+          "fileReplacements": [
+            {
+              "replace": "apps/triageflow/src/environments/environment.ts",
+              "with": "apps/triageflow/src/environments/environment.dev.ts"
+            }
+          ],
           "optimization": false,
           "extractLicenses": false,
           "sourceMap": true

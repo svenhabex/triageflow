@@ -16,6 +16,9 @@
     "baseUrl": ".",
     "paths": {
       "@triageflow/devkit": ["tools/devkit/src/index.ts"],
+      "@triageflow/patient/data-access": [
+        "libs/patient/data-access/src/index.ts"
+      ],
       "@triageflow/patient/feat-triage-tracker": [
         "libs/patient/feat-triage-tracker/src/index.ts"
       ],

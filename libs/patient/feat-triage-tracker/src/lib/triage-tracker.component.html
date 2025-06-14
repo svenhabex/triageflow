@@ -1,7 +1,10 @@
 <div class="flex flex-col justify-end h-full w-full gap-8">
   <div class="flex flex-col gap-6">
-    @for (message of messages(); track message.text) {
-      <flow-message-bubble [content]="message.text" [type]="message.sender" />
+    @for (message of messages(); track $index) {
+      <flow-message-bubble
+        [content]="message.content"
+        [type]="message.sender"
+      />
     }
 
     @if (isLoading()) {

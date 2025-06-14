@@ -26,13 +26,14 @@ class WorkflowResponse(BaseModel):
     result: dict[str, Any]
 
 
-@router.post("/workflow/start", response_model=WorkflowResponse)
+@router.post("/patient/intake", response_model=WorkflowResponse)
 async def start_workflow(request: PatientIntakeRequest) -> WorkflowResponse:
     """
     Start a new triage workflow for a patient.
     """
     try:
         initial_state = {"messages": [HumanMessage(content=request.conversation)]}
+
         result = await triage_workflow.run(initial_state)
 
         return WorkflowResponse(status="completed", result=result)
