@@ -1,0 +1,37 @@
+<div class="flex flex-col gap-2">
+  <div class="flex items-center gap-2 text-gray-500">
+    <i class="pi pi-clock text-lg"></i>
+    <span class="font-semibold">{{ currentTime() }}</span>
+    <div class="flex-1 border-t border-gray-300"></div>
+  </div>
+
+  @for (item of queueItemsViewModel(); track item.id) {
+    <div
+      [class]="`flex gap-4 shadow-sm border rounded-lg bg-white overflow-hidden ${item.borderClass}`"
+    >
+      <div
+        [class]="`flex justify-center w-[50px] self-stretch items-center font-bold text-4xl text-white ${item.bgColorClass}`"
+      >
+        @switch (item.type) {
+          @case (queueSeverityEnum.ESI1) {
+            <i class="pi pi-angle-double-up"></i>
+          }
+          @case (queueSeverityEnum.ESI2) {
+            <i class="pi pi-angle-up"></i>
+          }
+          @case (queueSeverityEnum.ESI3) {
+            <i class="pi pi-circle-on"></i>
+          }
+          @case (queueSeverityEnum.ESI4) {
+            <i class="pi pi-circle-off"></i>
+          }
+        }
+      </div>
+
+      <div class="flex flex-col p-2">
+        <h1 class="text-xl font-semibold">{{ item.name }}</h1>
+        <p class="text-sm">{{ item.description }}</p>
+      </div>
+    </div>
+  }
+</div>

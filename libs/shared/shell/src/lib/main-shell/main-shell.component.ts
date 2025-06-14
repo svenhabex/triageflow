@@ -20,7 +20,7 @@ export class MainShellComponent {
 
   flows = [
     {
-      label: 'Emergency room triage',
+      label: 'Emergency room',
       type: FlowTypeEnum.ER_PATIENT,
       items: [
         {

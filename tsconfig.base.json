@@ -16,15 +16,22 @@
     "baseUrl": ".",
     "paths": {
       "@triageflow/devkit": ["tools/devkit/src/index.ts"],
-      "@triageflow/feat-tracker": ["libs/patient/feat-tracker/src/index.ts"],
-      "@triageflow/feat-triage-tracker": [
+      "@triageflow/patient/feat-triage-tracker": [
         "libs/patient/feat-triage-tracker/src/index.ts"
       ],
+      "@triageflow/patient/shell": ["libs/patient/shell/src/index.ts"],
+      "@triageflow/queue/feat-detail": ["libs/queue/feat-detail/src/index.ts"],
+      "@triageflow/queue/shell": ["libs/queue/shell/src/index.ts"],
       "@triageflow/shared/models": ["libs/shared/models/src/index.ts"],
       "@triageflow/shared/shell": ["libs/shared/shell/src/index.ts"],
-      "@triageflow/shared/ui": ["libs/shared/ui/src/index.ts"],
-      "@triageflow/shell": ["libs/patient/shell/src/index.ts"]
+      "@triageflow/shared/ui": ["libs/shared/ui/src/index.ts"]
     }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
   },
   "exclude": ["node_modules", "tmp"]
 }

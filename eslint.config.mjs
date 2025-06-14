@@ -1,4 +1,13 @@
 import nx from '@nx/eslint-plugin';
+import {
+  typescriptConfig,
+  cypressConfig,
+  htmlConfig,
+  jestConfig,
+} from './tools/eslint-plugin-triageflow/index.mjs';
+import eslintPluginCypress from 'eslint-plugin-cypress';
+import eslintPluginImport from 'eslint-plugin-import';
+import eslintPluginJest from 'eslint-plugin-jest';
 
 export default [
   {
@@ -17,7 +26,24 @@ export default [
       '**/dist',
       '**/vite.config.*.timestamp*',
       '**/vitest.config.*.timestamp*',
+      '**/node_modules',
+      '**/coverage',
+      '**/.nx',
+      '**/.vscode',
+      '**/.cursor',
+      '**/.idea',
+      '**/.angular',
+      '**/.git',
+      'package-lock.json',
+      'migrations.json',
     ],
+  },
+  {
+    plugins: {
+      cypress: eslintPluginCypress,
+      import: eslintPluginImport,
+      jest: eslintPluginJest,
+    },
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
@@ -157,4 +183,8 @@ export default [
     // Override or add rules here
     rules: {},
   },
+  ...typescriptConfig,
+  ...htmlConfig,
+  ...jestConfig,
+  ...cypressConfig,
 ];

@@ -9,7 +9,17 @@ export const routes: Route[] = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'dashboard',
+        redirectTo: 'queue',
+      },
+      {
+        path: 'queue',
+        loadChildren: async () =>
+          (await import('@triageflow/queue/shell')).routes,
+      },
+      {
+        path: 'patient',
+        loadChildren: async () =>
+          (await import('@triageflow/patient/shell')).routes,
       },
     ],
   },
