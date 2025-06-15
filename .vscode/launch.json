@@ -1,0 +1,12 @@
+{
+  "configurations": [
+    {
+      "name": "Backend",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["src.main:app", "--reload"],
+      "cwd": "${workspaceFolder}/apps/backend"
+    }
+  ]
+}

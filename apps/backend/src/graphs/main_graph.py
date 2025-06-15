@@ -52,10 +52,13 @@ class TriageWorkflow:
         result = await intake_agent.run(state)
 
         # Update state with results
-        return {
+        updated_state = {
             "last_node": INTAKE_NODE,
-            **result,  # This includes intake_completed and intake_data
+            **result,
         }
+
+        print(f"Updated state: {updated_state}")
+        return updated_state
 
     async def _triage_node(self, state: WorkflowState) -> dict[str, Any]:
         """Execute the triage agent."""
@@ -71,7 +74,21 @@ class TriageWorkflow:
 
     def _route_next_step(self, state: WorkflowState) -> str:
         """Route to the next step based on the current state."""
+
+        # Check for repeated failures to prevent infinite loops
+        errors = state.get("errors", [])
+        if len(errors) > 3:
+            return END
+
+        # Check if we have intake information or if there are critical errors
         if state.get("intake_conversation_info"):
+            return END
+
+        # Check if we're stuck in a loop (intake node was just executed)
+        if state.get("last_node") == INTAKE_NODE and not state.get(
+            "intake_conversation_info"
+        ):
+            print("Warning: Intake node completed but no conversation info found")
             return END
 
         return INTAKE_NODE
@@ -93,6 +110,7 @@ class TriageWorkflow:
         """Run the complete workflow."""
         config = {"configurable": {"thread_id": thread_id}}
         result = await self.app.ainvoke(initial_state, config=config)
+
         return result
 
 

@@ -1,3 +1,5 @@
+import { ChatMessage } from '../messages.model';
+
 export const AgentStatusEnum = {
   Completed: 'completed',
   Running: 'running',
@@ -9,5 +11,8 @@ export type AgentStatus =
 
 export type AgentResponse<T> = {
   status: AgentStatus;
+  messages: ChatMessage[];
+  errors: string[];
+  lastNode: string;
   result: T;
 };

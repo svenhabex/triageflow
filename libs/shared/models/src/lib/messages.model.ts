@@ -1,5 +1,5 @@
 export const MessageSenderEnum = {
-  User: 'user',
+  Human: 'human',
   Assistant: 'assistant',
 } as const;
 
@@ -7,7 +7,7 @@ export type MessageSender =
   (typeof MessageSenderEnum)[keyof typeof MessageSenderEnum];
 
 export type ChatMessage = {
+  id: string;
   content: string;
-  sender: MessageSender;
-  isLoading?: boolean;
+  type: MessageSender;
 };

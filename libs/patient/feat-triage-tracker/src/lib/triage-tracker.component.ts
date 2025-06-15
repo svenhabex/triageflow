@@ -1,5 +1,5 @@
 import { ButtonModule } from 'primeng/button';
-import { map, merge, Observable, scan, Subject, switchMap } from 'rxjs';
+import { map, merge, Observable, scan, share, Subject, switchMap } from 'rxjs';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -9,7 +9,12 @@ import {
   Validators,
 } from '@angular/forms';
 import { PatientDataService } from '@triageflow/patient/data-access';
-import { ChatMessage, MessageSenderEnum } from '@triageflow/shared/models';
+import {
+  AgentResponse,
+  ChatMessage,
+  MessageSenderEnum,
+  StartIntakeResult,
+} from '@triageflow/shared/models';
 import {
   ChatLoadingComponent,
   MessageBubbleComponent,
@@ -32,12 +37,10 @@ export class TriageTrackerComponent {
 
   readonly sumbitMessage$ = new Subject<string>();
   readonly userMessages$ = this.getUserMessages();
-  readonly assistantMessages$ = this.getAssistantMessages();
-  readonly messages = toSignal(
-    this.getMessages(this.userMessages$, this.assistantMessages$),
-  );
+  readonly assistantResponse$ = this.getAssistantResponse();
+  readonly messages = toSignal(this.getMessages(this.userMessages$));
   readonly isLoading = toSignal(
-    this.getLoading(this.userMessages$, this.assistantMessages$),
+    this.getLoading(this.userMessages$, this.assistantResponse$),
   );
 
   readonly form = new FormGroup({
@@ -74,41 +77,36 @@ export class TriageTrackerComponent {
 
   private getUserMessages(): Observable<ChatMessage[]> {
     return this.sumbitMessage$.pipe(
-      map((message) => [{ content: message, sender: MessageSenderEnum.User }]),
+      map((message) => [
+        { content: message, type: MessageSenderEnum.Human, id: '' },
+      ]),
     );
   }
 
-  private getAssistantMessages(): Observable<ChatMessage[]> {
+  private getAssistantResponse(): Observable<AgentResponse<StartIntakeResult>> {
     return this.sumbitMessage$.pipe(
       switchMap((message) =>
-        this.#patientDataService.startIntake({ conversation: message }).pipe(
-          map((response) => [
-            {
-              content: response.result.message,
-              sender: MessageSenderEnum.Assistant,
-            },
-          ]),
-        ),
+        this.#patientDataService.startIntake({ conversation: message }),
       ),
+      share(),
     );
   }
 
   private getMessages(
     userMessages: Observable<ChatMessage[]>,
-    assistantMessages: Observable<ChatMessage[]>,
   ): Observable<ChatMessage[]> {
-    return merge(userMessages, assistantMessages).pipe(
+    return merge(userMessages).pipe(
       scan((acc, curr) => [...acc, ...curr], [] as ChatMessage[]),
     );
   }
 
   private getLoading(
     userMessages: Observable<ChatMessage[]>,
-    assistantMessages: Observable<ChatMessage[]>,
+    assistantResponse: Observable<AgentResponse<StartIntakeResult>>,
   ): Observable<boolean> {
     return merge(
       userMessages.pipe(map(() => true)),
-      assistantMessages.pipe(map(() => false)),
+      assistantResponse.pipe(map(() => false)),
     );
   }
 }

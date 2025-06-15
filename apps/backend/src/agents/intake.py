@@ -1,7 +1,11 @@
 import os
 from typing import Any
 
+from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
+
+# Load environment variables
+load_dotenv()
 from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
@@ -63,6 +67,7 @@ def get_patient_details(patient_id: str) -> dict[str, Any]:
 
 def _get_model():
     """Get the ChatGoogleGenerativeAI model, initialized lazily."""
+
     return ChatGoogleGenerativeAI(
         model="gemini-2.5-flash-preview-05-20",
         temperature=1.0,
@@ -161,7 +166,7 @@ class IntakeAgent:
             HumanMessage(content=human_prompt),
         ]
 
-        structured_model = self._model.with_structured_output(IntakeConversationInfo)
+        structured_model = self.model.with_structured_output(IntakeConversationInfo)
 
         response = await structured_model.ainvoke(messages)
 

@@ -4,7 +4,9 @@ export type StartIntakeRequest = {
   conversation: string;
 };
 
-export type StartIntakeResponse = AgentResponse<{
-  message: string;
+export type StartIntakeResult = AgentResponse<{
   symptoms: string[];
+  painLevel: number;
+  chiefComplaint: string;
+  additionalNotes: string;
 }>;
