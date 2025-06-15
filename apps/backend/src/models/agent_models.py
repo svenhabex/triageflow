@@ -24,12 +24,14 @@ class AgentResponse(BaseModel, Generic[T]):
     result: T
 
 
-class StartIntakeResult(BaseModel):
-    """Python equivalent of StartIntakeResult from TypeScript."""
+class IntakeResult(BaseModel):
+    """Python equivalent of IntakeResult from TypeScript."""
 
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     symptoms: list[str] = []
     pain_level: int = 0
     chief_complaint: str = ""
+    medications: list[str] = []
+    allergies: list[str] = []
     additional_notes: str = ""

@@ -1,11 +1,7 @@
-"""
-Result mapper for converting workflow state to appropriate response models based on last_node.
-"""
-
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
 
-from src.models import AgentResponse, StartIntakeResult
+from src.models import AgentResponse, IntakeResult
 
 from .message_mapper import MessageMapper
 
@@ -14,7 +10,7 @@ class NodeResultMapper(ABC):
     """Abstract base class for node-specific result mappers."""
 
     @abstractmethod
-    def map_result(self, state: Dict[str, Any]) -> Any:
+    def map_result(self, state: dict[str, Any]) -> Any:
         """Map the workflow state to the appropriate result format."""
         pass
 
@@ -22,44 +18,38 @@ class NodeResultMapper(ABC):
 class IntakeNodeMapper(NodeResultMapper):
     """Mapper for intake node results."""
 
-    def map_result(self, state: Dict[str, Any]) -> StartIntakeResult:
-        """Map intake node state to StartIntakeResult."""
+    def map_result(self, state: dict[str, Any]) -> IntakeResult:
+        """Map intake node state to IntakeResult."""
 
-        # Extract intake-specific data from the state
-        # This assumes the intake node stores its results in specific keys
-        intake_data = state.get("intake_data", {})
+        intake_info = state.get("intake_conversation_info")
 
-        return StartIntakeResult(
-            symptoms=intake_data.get("symptoms", []),
-            pain_level=intake_data.get("pain_level", 0),
-            chief_complaint=intake_data.get("chief_complaint", ""),
-            additional_notes=intake_data.get("additional_notes", ""),
+        if intake_info is None:
+            return IntakeResult(
+                symptoms=[],
+                pain_level=0,
+                chief_complaint="",
+                medications=[],
+                allergies=[],
+                additional_notes="",
+            )
+
+        return IntakeResult(
+            symptoms=intake_info.symptoms,
+            pain_level=intake_info.pain_level,
+            chief_complaint=intake_info.chief_complaint,
+            medications=intake_info.medications,
+            allergies=intake_info.allergies,
+            additional_notes=intake_info.additional_notes,
         )
-
-
-# Example of how to extend for future node types:
-#
-# class DiagnosisNodeMapper(NodeResultMapper):
-#     """Mapper for diagnosis node results."""
-#
-#     def map_result(self, state: Dict[str, Any]) -> DiagnosisResult:
-#         diagnosis_data = state.get("diagnosis_data", {})
-#         return DiagnosisResult(
-#             primary_diagnosis=diagnosis_data.get("primary_diagnosis", ""),
-#             confidence_level=diagnosis_data.get("confidence_level", 0.0),
-#             recommendations=diagnosis_data.get("recommendations", [])
-#         )
 
 
 class ResultMapper:
     """Main result mapper that delegates to node-specific mappers."""
 
-    # Registry of node mappers - easily extensible for new node types
-    _node_mappers: Dict[str, NodeResultMapper] = {
+    _node_mappers: dict[str, NodeResultMapper] = {
         "intake": IntakeNodeMapper(),
         # Add more node mappers here as needed:
-        # "diagnosis": DiagnosisNodeMapper(),
-        # "treatment": TreatmentNodeMapper(),
+        # "triage": TriageNodeMapper(),
     }
 
     @classmethod
@@ -69,25 +59,14 @@ class ResultMapper:
 
     @classmethod
     def create_agent_response(
-        cls, state: Dict[str, Any], status: str = "completed"
+        cls, state: dict[str, Any], status: str = "completed"
     ) -> AgentResponse:
-        """
-        Create an AgentResponse from workflow state based on last_node.
+        """Create an AgentResponse from workflow state based on last_node."""
 
-        Args:
-            state: The workflow state dictionary
-            status: The status of the workflow execution
-
-        Returns:
-            AgentResponse with appropriate result type based on last_node
-        """
-
-        # Extract common fields
         last_node = state.get("last_node", "unknown")
         messages = MessageMapper.convert_messages_from_state(state)
         errors = state.get("errors", [])
 
-        # Map the result based on the last_node
         result = cls._map_node_result(state, last_node)
 
         return AgentResponse(
@@ -99,14 +78,13 @@ class ResultMapper:
         )
 
     @classmethod
-    def _map_node_result(cls, state: Dict[str, Any], last_node: str) -> Any:
+    def _map_node_result(cls, state: dict[str, Any], last_node: str) -> Any:
         """Map the result based on the last_node type."""
 
         mapper = cls._node_mappers.get(last_node)
         if mapper:
             return mapper.map_result(state)
 
-        # Default fallback for unknown node types
         return {
             "message": f"No specific mapper found for node type: {last_node}",
             "raw_state": state,

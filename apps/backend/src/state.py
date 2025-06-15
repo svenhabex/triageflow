@@ -17,6 +17,8 @@ class IntakeConversationInfo(BaseModel):
     symptoms: list[str] = Field(description="list of symptoms")
     pain_level: int = Field(description="pain level on a 1-10 scale")
     chief_complaint: str = Field(description="main reason for visit")
+    medications: list[str] = Field(description="list of medications")
+    allergies: list[str] = Field(description="list of allergies")
     additional_notes: str = Field(description="any other relevant information")
 
 

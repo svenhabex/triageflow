@@ -23,6 +23,7 @@
         "libs/patient/feat-triage-tracker/src/index.ts"
       ],
       "@triageflow/patient/shell": ["libs/patient/shell/src/index.ts"],
+      "@triageflow/patient/ui": ["libs/patient/ui/src/index.ts"],
       "@triageflow/queue/feat-detail": ["libs/queue/feat-detail/src/index.ts"],
       "@triageflow/queue/shell": ["libs/queue/shell/src/index.ts"],
       "@triageflow/shared/models": ["libs/shared/models/src/index.ts"],

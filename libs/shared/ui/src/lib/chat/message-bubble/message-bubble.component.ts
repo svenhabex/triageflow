@@ -17,7 +17,7 @@ export class MessageBubbleComponent {
   readonly type = input.required<MessageSender>();
 
   readonly typeClasses = computed(() => {
-    return this.type() === MessageSenderEnum.User
+    return this.type() === MessageSenderEnum.Human
       ? 'px-5 py-4 rounded-4xl ml-auto bg-primary-100 shadow-sm'
       : 'mr-auto bg-transparent';
   });

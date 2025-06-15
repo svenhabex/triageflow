@@ -1,0 +1,54 @@
+<div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-2">
+    <h3 class="text-2xl font-semibold border-b border-surface-400 pb-1 mb-2">
+      Intake Result
+    </h3>
+    <p>
+      {{ result().chiefComplaint }}
+    </p>
+
+    <div class="flex flex-wrap gap-2">
+      @for (symptom of result().symptoms; track symptom) {
+        <p-tag severity="info" rounded [value]="symptom" />
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <p class="text-sm">
+      Pain Level:
+      <span class="font-semibold">{{ result().painLevel }}</span>
+    </p>
+
+    <p-progressbar
+      class="flex-1 max-w-[200px]"
+      [value]="painLevel()"
+      [color]="painLevelColor()"
+      [style]="{ height: '6px' }"
+      [showValue]="false"
+    />
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <h4 class="font-semibold">Medications</h4>
+    @if (result().medications.length > 0) {
+      <p>{{ result().medications.join(', ') }}</p>
+    } @else {
+      <p class="text-sm text-surface-500">No medications mentioned</p>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <h4 class="font-semibold">Allergies</h4>
+    @if (result().allergies.length > 0) {
+      <p>{{ result().allergies.join(', ') }}</p>
+    } @else {
+      <p class="text-sm text-surface-500">No allergies mentioned</p>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <h4 class="font-semibold">Additional Notes</h4>
+    <p>{{ result().additionalNotes }}</p>
+  </div>
+</div>

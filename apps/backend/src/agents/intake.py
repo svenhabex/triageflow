@@ -151,7 +151,9 @@ class IntakeAgent:
             Guidelines:
             - Extract symptoms mentioned by the patient
             - Look for pain ratings on a 1-10 scale
-            - Summarize the conversation into a single sentence as the chief complaint
+            - Look for medications mentioned by the patient
+            - Look for allergies mentioned by the patient
+            - Summarize the conversation as the chief complaint
             - Extract any additional notes from the conversation
             - Be precise and only include information explicitly mentioned
             - Use null for missing information

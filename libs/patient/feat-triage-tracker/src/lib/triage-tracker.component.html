@@ -1,7 +1,17 @@
 <div class="flex flex-col justify-end h-full w-full gap-8">
   <div class="flex flex-col gap-6">
-    @for (message of messages(); track $index) {
-      <flow-message-bubble [content]="message.content" [type]="message.type" />
+    @for (item of output(); track $index) {
+      @switch (item.type) {
+        @case (TriageTrackerOutputTypeEnum.Message) {
+          <flow-message-bubble
+            [content]="item.data.content"
+            [type]="item.data.type"
+          />
+        }
+        @case (TriageTrackerOutputTypeEnum.Intake) {
+          <flow-intake-result [result]="item.data.result" />
+        }
+      }
     }
 
     @if (isLoading()) {
