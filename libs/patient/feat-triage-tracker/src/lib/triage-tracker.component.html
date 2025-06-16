@@ -26,9 +26,10 @@
   >
     <textarea
       name="input"
-      class="flex-1 p-4 field-sizing-content border-none bg-transparent h-full max-h-[400px] resize-none outline-none"
+      class="flex-1 p-4 field-sizing-content border-none bg-transparent h-full max-h-[400px] resize-none outline-none placeholder:text-surface-400"
       pTextarea
       formControlName="message"
+      placeholder="Fill in the conversation with the patient..."
       (keydown)="onKeyDown($event)"
     ></textarea>
     <div class="flex pr-4 pb-4 pt-4">

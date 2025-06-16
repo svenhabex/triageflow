@@ -21,48 +21,52 @@ def get_patient_details(patient_id: str) -> dict[str, Any]:
     Later this will be replaced with actual database calls.
     """
     # Mock patient database
-    mock_patients = {
-        "P001": {
-            "name": "John Doe",
-            "age": 45,
+    mock_patients = [
+        {
+            "patient_id": "P001",
+            "name": "Alex Ramirez",
+            "date_of_birth": "1990-01-01",
             "gender": "Male",
             "medical_history": ["Hypertension", "Type 2 Diabetes"],
             "allergies": ["Penicillin", "Nuts"],
             "current_medications": ["Metformin", "Lisinopril"],
             "emergency_contact": "Jane Doe - 555-0123",
         },
-        "P002": {
+        {
+            "patient_id": "P002",
             "name": "Sarah Smith",
-            "age": 32,
+            "date_of_birth": "1995-05-15",
             "gender": "Female",
             "medical_history": ["Asthma"],
             "allergies": ["Latex"],
             "current_medications": ["Albuterol inhaler"],
             "emergency_contact": "Mike Smith - 555-0456",
         },
-        "P003": {
+        {
+            "patient_id": "P003",
             "name": "Robert Johnson",
-            "age": 67,
+            "date_of_birth": "1985-11-20",
             "gender": "Male",
             "medical_history": ["Heart Disease", "Arthritis"],
             "allergies": ["Aspirin"],
             "current_medications": ["Metoprolol", "Ibuprofen"],
             "emergency_contact": "Mary Johnson - 555-0789",
         },
-    }
+    ]
 
-    return mock_patients.get(
-        patient_id,
-        {
-            "name": "Unknown Patient",
-            "age": None,
-            "gender": "Unknown",
-            "medical_history": [],
-            "allergies": [],
-            "current_medications": [],
-            "emergency_contact": "Not provided",
-        },
-    )
+    for patient in mock_patients:
+        if patient["patient_id"] == patient_id:
+            return patient
+
+    return {
+        "name": "Unknown Patient",
+        "age": None,
+        "gender": "Unknown",
+        "medical_history": [],
+        "allergies": [],
+        "current_medications": [],
+        "emergency_contact": "Not provided",
+    }
 
 
 def _get_model():
@@ -77,7 +81,7 @@ def _get_model():
 
 
 EXTRACT_CONVERSATION_INFO_NODE = "extract_conversation_info"
-GET_PATIENT_HISTORY_NODE = "get_patient_history"
+GET_PATIENT_INFO_NODE = "get_patient_info"
 VALIDATE_AND_COMPILE_NODE = "validate_and_compile"
 
 
@@ -107,6 +111,7 @@ class IntakeAgent:
         workflow.add_node(
             EXTRACT_CONVERSATION_INFO_NODE, self._extract_conversation_info
         )
+        workflow.add_node(GET_PATIENT_INFO_NODE, self._get_patient_info)
 
         workflow.set_entry_point(EXTRACT_CONVERSATION_INFO_NODE)
         workflow.add_edge(EXTRACT_CONVERSATION_INFO_NODE, END)
@@ -174,7 +179,7 @@ class IntakeAgent:
 
         return response
 
-    async def _get_patient_history(self, state: WorkflowState) -> dict[str, Any]:
+    async def _get_patient_info(self, state: WorkflowState) -> dict[str, Any]:
         """Retrieve patient history from the database."""
 
         patient_id = None
