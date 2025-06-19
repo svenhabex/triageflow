@@ -12,4 +12,10 @@ export const routes: Routes = [
       (await import('@triageflow/patient/feat-triage-tracker'))
         .TriageTrackerComponent,
   },
+  {
+    path: 'tracker/:id',
+    loadComponent: async () =>
+      (await import('@triageflow/patient/feat-triage-tracker'))
+        .TriageTrackerComponent,
+  },
 ];

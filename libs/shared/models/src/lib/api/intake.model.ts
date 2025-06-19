@@ -1,10 +1,8 @@
-import { AgentResponse } from './agent.model';
-
 export type StartIntakeRequest = {
   conversation: string;
 };
 
-export type IntakeResult = {
+export type IntakeResponseDTO = {
   symptoms: string[];
   painLevel: number;
   chiefComplaint: string;
@@ -12,5 +10,3 @@ export type IntakeResult = {
   allergies: string[];
   additionalNotes: string;
 };
-
-export type IntakeResponse = AgentResponse<IntakeResult>;

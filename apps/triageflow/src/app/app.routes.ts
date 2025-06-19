@@ -9,7 +9,7 @@ export const routes: Route[] = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'queue',
+        redirectTo: 'patient',
       },
       {
         path: 'queue',

@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.models import AgentResponse, IntakeResult
-
-from .message_mapper import MessageMapper
+from src.models import IntakeResponseDTO
 
 
 class NodeResultMapper(ABC):
@@ -18,13 +16,13 @@ class NodeResultMapper(ABC):
 class IntakeNodeMapper(NodeResultMapper):
     """Mapper for intake node results."""
 
-    def map_result(self, state: dict[str, Any]) -> IntakeResult:
+    def map_result(self, state: dict[str, Any]) -> IntakeResponseDTO:
         """Map intake node state to IntakeResult."""
 
         intake_info = state.get("intake_conversation_info")
 
         if intake_info is None:
-            return IntakeResult(
+            return IntakeResponseDTO(
                 symptoms=[],
                 pain_level=0,
                 chief_complaint="",
@@ -33,7 +31,7 @@ class IntakeNodeMapper(NodeResultMapper):
                 additional_notes="",
             )
 
-        return IntakeResult(
+        return IntakeResponseDTO(
             symptoms=intake_info.symptoms,
             pain_level=intake_info.pain_level,
             chief_complaint=intake_info.chief_complaint,
@@ -56,26 +54,6 @@ class ResultMapper:
     def register_node_mapper(cls, node_name: str, mapper: NodeResultMapper) -> None:
         """Register a new node mapper for extensibility."""
         cls._node_mappers[node_name] = mapper
-
-    @classmethod
-    def create_agent_response(
-        cls, state: dict[str, Any], status: str = "completed"
-    ) -> AgentResponse:
-        """Create an AgentResponse from workflow state based on last_node."""
-
-        last_node = state.get("last_node", "unknown")
-        messages = MessageMapper.convert_messages_from_state(state)
-        errors = state.get("errors", [])
-
-        result = cls._map_node_result(state, last_node)
-
-        return AgentResponse(
-            status=status,
-            messages=messages,
-            errors=errors,
-            last_node=last_node,
-            result=result,
-        )
 
     @classmethod
     def _map_node_result(cls, state: dict[str, Any], last_node: str) -> Any:

@@ -1,22 +1,40 @@
 import { ButtonModule } from 'primeng/button';
-import { map, merge, Observable, scan, share, Subject, switchMap } from 'rxjs';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  filter,
+  map,
+  merge,
+  Observable,
+  of,
+  scan,
+  share,
+  Subject,
+  switchMap,
+  tap,
+  withLatestFrom,
+} from 'rxjs';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+} from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { PatientDataService } from '@triageflow/patient/data-access';
+import {
+  PatientDataFacade,
+  providePatientDataAccess,
+} from '@triageflow/patient/data-access';
 import { IntakeResultComponent } from '@triageflow/patient/ui';
 import {
-  AgentResponse,
-  AgentStatusEnum,
-  ChatMessage,
-  IntakeResponse,
-  IntakeResult,
+  AgentNameEnum,
   MessageSenderEnum,
+  WebSocketTriageTypeEnum,
 } from '@triageflow/shared/models';
 import {
   ChatLoadingComponent,
@@ -27,28 +45,6 @@ import {
   TriageTrackerOutput,
   TriageTrackerOutputTypeEnum,
 } from './triage-tracker.model';
-
-const chatMessageMock: ChatMessage = {
-  content: 'Hello, how are you?',
-  type: MessageSenderEnum.Human,
-  id: '1',
-};
-
-const intakeAgentResponseMock: IntakeResponse = {
-  status: AgentStatusEnum.Completed,
-  messages: [],
-  errors: [],
-  lastNode: 'intake',
-  result: {
-    symptoms: ['chest pain', 'dizzy'],
-    painLevel: 8,
-    chiefComplaint: 'Patient presents with chest pain.',
-    medications: ['ibuprofen', 'aspirin'],
-    allergies: ['penicillin'],
-    additionalNotes: 'Patient consumed 8 to 10 beers.',
-  },
-};
-
 @Component({
   selector: 'flow-triage-tracker',
   templateUrl: 'triage-tracker.component.html',
@@ -61,18 +57,73 @@ const intakeAgentResponseMock: IntakeResponse = {
     ButtonModule,
     IntakeResultComponent,
   ],
+  providers: [providePatientDataAccess()],
 })
 export class TriageTrackerComponent {
-  readonly #patientDataService = inject(PatientDataService);
+  readonly #patientDataFacade = inject(PatientDataFacade);
 
-  readonly sumbitMessage$ = new Subject<string>();
-  readonly userMessages$ = this.getUserMessages();
-  readonly assistantResponse$ = this.getAssistantResponse();
-  readonly output = toSignal(
-    this.getOutput(this.userMessages$, this.assistantResponse$),
+  readonly id = input<string | null>(null);
+
+  readonly sessionId = computed(() => this.id() ?? window.crypto.randomUUID());
+  readonly userMessages$ = new Subject<string>();
+  readonly webSocketSubject$ = toObservable(this.sessionId).pipe(
+    switchMap((sessionId) =>
+      of(this.#patientDataFacade.openTriageConnection(sessionId)),
+    ),
+    share(),
   );
+
+  private readonly userMessageWithSideEffect$: Observable<TriageTrackerOutput> =
+    this.userMessages$.pipe(
+      withLatestFrom(this.webSocketSubject$),
+      tap(([message, webSocketSubject]) => {
+        webSocketSubject.next({
+          type: WebSocketTriageTypeEnum.startWorkflow,
+          conversation: message,
+        });
+      }),
+      map(([message]) => ({
+        type: TriageTrackerOutputTypeEnum.Message,
+        data: { type: MessageSenderEnum.Human, content: message },
+      })),
+    );
+
+  private readonly agentResponses$: Observable<TriageTrackerOutput> =
+    this.webSocketSubject$.pipe(
+      switchMap((webSocketSubject) => webSocketSubject.asObservable()),
+      filter(
+        (response) => response.type === WebSocketTriageTypeEnum.responseAgent,
+      ),
+      map((response) => {
+        switch (response.name) {
+          case AgentNameEnum.intake:
+            return {
+              type: TriageTrackerOutputTypeEnum.Intake,
+              data: response.data,
+            } as TriageTrackerOutput;
+          default:
+            return null;
+        }
+      }),
+      filter((output): output is TriageTrackerOutput => output !== null),
+    );
+
+  readonly output$ = merge(
+    this.userMessageWithSideEffect$,
+    this.agentResponses$,
+  ).pipe(
+    scan((acc, curr) => [...acc, curr], [] as TriageTrackerOutput[]),
+    share(),
+  );
+
+  readonly output = toSignal(this.output$, { initialValue: [] });
+
   readonly isLoading = toSignal(
-    this.getLoading(this.userMessages$, this.assistantResponse$),
+    merge(
+      this.userMessages$.pipe(map(() => true)),
+      this.output$.pipe(map(() => false)),
+    ),
+    { initialValue: false },
   );
 
   readonly form = new FormGroup({
@@ -105,70 +156,7 @@ export class TriageTrackerComponent {
     this.form.reset();
 
     if (userMessageText) {
-      this.sumbitMessage$.next(userMessageText);
+      this.userMessages$.next(userMessageText);
     }
-  }
-
-  private getUserMessages(): Observable<ChatMessage[]> {
-    return this.sumbitMessage$.pipe(
-      map((message) => [
-        { content: message, type: MessageSenderEnum.Human, id: '' },
-      ]),
-    );
-  }
-
-  private getAssistantResponse(): Observable<AgentResponse<IntakeResult>> {
-    return this.sumbitMessage$.pipe(
-      switchMap((message) =>
-        this.#patientDataService.startIntake({ conversation: message }),
-      ),
-      share(),
-    );
-  }
-
-  private getOutput(
-    userMessages: Observable<ChatMessage[]>,
-    assistantResponse: Observable<AgentResponse<IntakeResult>>,
-  ): Observable<TriageTrackerOutput[]> {
-    return merge(
-      userMessages.pipe(
-        map((messages) =>
-          messages.map((message) => ({
-            type: TriageTrackerOutputTypeEnum.Message,
-            data: message,
-          })),
-        ),
-        // startWith([
-        //   {
-        //     type: TriageTrackerOutputTypeEnum.Message,
-        //     data: chatMessageMock,
-        //   } as TriageTrackerOutput,
-        // ]),
-      ),
-      assistantResponse.pipe(
-        map((response) => [
-          {
-            type: TriageTrackerOutputTypeEnum.Intake,
-            data: response,
-          },
-        ]),
-        // startWith([
-        //   {
-        //     type: TriageTrackerOutputTypeEnum.Intake,
-        //     data: intakeAgentResponseMock,
-        //   } as TriageTrackerOutput,
-        // ]),
-      ),
-    ).pipe(scan((acc, curr) => [...acc, ...curr], [] as TriageTrackerOutput[]));
-  }
-
-  private getLoading(
-    userMessages: Observable<ChatMessage[]>,
-    assistantResponse: Observable<AgentResponse<IntakeResult>>,
-  ): Observable<boolean> {
-    return merge(
-      userMessages.pipe(map(() => true)),
-      assistantResponse.pipe(map(() => false)),
-    );
   }
 }

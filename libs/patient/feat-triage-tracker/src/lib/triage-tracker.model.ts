@@ -1,12 +1,8 @@
-import {
-  AgentResponse,
-  ChatMessage,
-  IntakeResult,
-} from '@triageflow/shared/models';
+import { ChatMessage, IntakeResponseDTO } from '@triageflow/shared/models';
 
 export const TriageTrackerOutputTypeEnum = {
-  Intake: 'intake',
-  Message: 'message',
+  Intake: 'INTAKE',
+  Message: 'MESSAGE',
 } as const;
 
 export type TriageTrackerOutputType =
@@ -14,10 +10,10 @@ export type TriageTrackerOutputType =
 
 export type TriageTrackerOutput =
   | {
-      type: 'intake';
-      data: AgentResponse<IntakeResult>;
+      type: typeof TriageTrackerOutputTypeEnum.Intake;
+      data: IntakeResponseDTO;
     }
   | {
-      type: 'message';
+      type: typeof TriageTrackerOutputTypeEnum.Message;
       data: ChatMessage;
     };

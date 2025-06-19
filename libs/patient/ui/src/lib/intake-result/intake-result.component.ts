@@ -2,7 +2,7 @@ import { PanelModule } from 'primeng/panel';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { Component, computed, input } from '@angular/core';
-import { IntakeResult } from '@triageflow/shared/models';
+import { IntakeResponseDTO } from '@triageflow/shared/models';
 
 @Component({
   selector: 'flow-intake-result',
@@ -10,7 +10,7 @@ import { IntakeResult } from '@triageflow/shared/models';
   imports: [TagModule, ProgressBarModule, PanelModule],
 })
 export class IntakeResultComponent {
-  readonly result = input.required<IntakeResult>();
+  readonly result = input.required<IntakeResponseDTO>();
 
   readonly painLevel = computed(() => (this.result().painLevel ?? 0) * 10);
   readonly painLevelColor = computed(() => {

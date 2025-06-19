@@ -41,9 +41,35 @@ class TriageWorkflow:
 
     async def _supervisor_node(self, state: WorkflowState) -> dict[str, Any]:
         """Coordinate the workflow and decide next steps."""
-        # The supervisor just returns the current state
-        # Routing decisions are handled by _route_next_step
+        # Supervisor just passes through state - routing logic is in _route_next_step
         return state
+
+    def _route_next_step(self, state: WorkflowState) -> str:
+        """Route to the next step based on the current state."""
+
+        # Early exit for too many errors
+        if len(state.errors) > 3:
+            return END
+
+        # Initial state - start with intake
+        if not state.last_node:
+            return INTAKE_NODE
+
+        # After intake: check if we got results
+        if state.last_node == INTAKE_NODE:
+            if state.intake_conversation_info:
+                # Intake successful - workflow complete for now
+                return END
+            else:
+                # Intake failed - end workflow (could retry in future)
+                return END
+
+        # After triage (future implementation)
+        if state.last_node == TRIAGE_NODE:
+            return END
+
+        # Fallback: if somehow we don't have intake info yet, try intake
+        return INTAKE_NODE if not state.intake_conversation_info else END
 
     async def _intake_node(self, state: WorkflowState) -> dict[str, Any]:
         """Execute the intake agent."""
@@ -51,58 +77,31 @@ class TriageWorkflow:
         # Run the intake subgraph
         result = await intake_agent.run(state)
 
-        # Update state with results
-        updated_state = {
+        return {
             "last_node": INTAKE_NODE,
             **result,
         }
 
-        print(f"Updated state: {updated_state}")
-        return updated_state
-
     async def _triage_node(self, state: WorkflowState) -> dict[str, Any]:
         """Execute the triage agent."""
-        state["last_node"] = TRIAGE_NODE
-
-        # Here you would call your individual triage agent graph
+        # Placeholder for future triage implementation
         triage_result = await self._execute_triage_agent(state)
 
         return {
+            "last_node": TRIAGE_NODE,
             "triage_completed": True,
             "triage_decision": triage_result,
         }
 
-    def _route_next_step(self, state: WorkflowState) -> str:
-        """Route to the next step based on the current state."""
-
-        # Check for repeated failures to prevent infinite loops
-        errors = state.get("errors", [])
-        if len(errors) > 3:
-            return END
-
-        # Check if we have intake information or if there are critical errors
-        if state.get("intake_conversation_info"):
-            return END
-
-        # Check if we're stuck in a loop (intake node was just executed)
-        if state.get("last_node") == INTAKE_NODE and not state.get(
-            "intake_conversation_info"
-        ):
-            print("Warning: Intake node completed but no conversation info found")
-            return END
-
-        return INTAKE_NODE
-
-    # async def _execute_triage_agent(self, state: WorkflowState) -> dict[str, Any]:
-    #     """Execute the triage agent graph."""
-    #     # This is where you would integrate with your individual triage agent
-    #     # For now, return a placeholder result
-    #     return {
-    #         "priority_level": "urgent",
-    #         "reasoning": "Based on symptoms and medical history",
-    #         "recommended_actions": ["immediate_assessment", "order_tests"],
-    #         "estimated_wait_time": 15,
-    #     }
+    async def _execute_triage_agent(self, state: WorkflowState) -> dict[str, Any]:
+        """Execute the triage agent graph."""
+        # Placeholder triage logic for future implementation
+        return {
+            "priority_level": "medium",
+            "reasoning": "Based on intake information",
+            "recommended_actions": ["further_assessment"],
+            "estimated_wait_time": 30,
+        }
 
     async def run(
         self, initial_state: dict[str, Any], thread_id: str = "default"
