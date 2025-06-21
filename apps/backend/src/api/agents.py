@@ -103,7 +103,7 @@ async def start_workflow(request: PatientIntakeRequest) -> IntakeResponseDTO:
         result = await workflow_service.execute_workflow(request.conversation)
         agent_response = ResultMapper.create_agent_response(result, "completed")
 
-        return agent_response
+        return agent_response.data
 
     except Exception as e:
         raise HTTPException(

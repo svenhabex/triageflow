@@ -26,7 +26,7 @@ class TriageWorkflow:
     def _build_graph(self) -> StateGraph:
         """Build the main orchestration graph."""
 
-        workflow = StateGraph(WorkflowState)
+        workflow = StateGraph(WorkflowState, output=WorkflowState)
 
         workflow.add_node(SUPERVISOR_NODE, self._supervisor_node)
         workflow.add_node(INTAKE_NODE, self._intake_node)
@@ -39,25 +39,25 @@ class TriageWorkflow:
 
         return workflow
 
-    async def _supervisor_node(self, state: WorkflowState) -> dict[str, Any]:
+    async def _supervisor_node(self, state: WorkflowState) -> WorkflowState:
         """Coordinate the workflow and decide next steps."""
-        # Supervisor just passes through state - routing logic is in _route_next_step
-        return state
+
+        return state  # TODO: Implement routing logic
 
     def _route_next_step(self, state: WorkflowState) -> str:
         """Route to the next step based on the current state."""
 
         # Early exit for too many errors
-        if len(state.errors) > 3:
+        if len(state.get("errors", [])) > 3:
             return END
 
         # Initial state - start with intake
-        if not state.last_node:
+        if not state.get("last_node"):
             return INTAKE_NODE
 
         # After intake: check if we got results
-        if state.last_node == INTAKE_NODE:
-            if state.intake_conversation_info:
+        if state.get("last_node") == INTAKE_NODE:
+            if state.get("intake_conversation_info"):
                 # Intake successful - workflow complete for now
                 return END
             else:
@@ -65,13 +65,13 @@ class TriageWorkflow:
                 return END
 
         # After triage (future implementation)
-        if state.last_node == TRIAGE_NODE:
+        if state.get("last_node") == TRIAGE_NODE:
             return END
 
         # Fallback: if somehow we don't have intake info yet, try intake
-        return INTAKE_NODE if not state.intake_conversation_info else END
+        return INTAKE_NODE if not state.get("intake_conversation_info") else END
 
-    async def _intake_node(self, state: WorkflowState) -> dict[str, Any]:
+    async def _intake_node(self, state: WorkflowState) -> WorkflowState:
         """Execute the intake agent."""
 
         # Run the intake subgraph
@@ -82,9 +82,9 @@ class TriageWorkflow:
             **result,
         }
 
-    async def _triage_node(self, state: WorkflowState) -> dict[str, Any]:
+    async def _triage_node(self, state: WorkflowState) -> WorkflowState:
         """Execute the triage agent."""
-        # Placeholder for future triage implementation
+
         triage_result = await self._execute_triage_agent(state)
 
         return {
@@ -93,9 +93,9 @@ class TriageWorkflow:
             "triage_decision": triage_result,
         }
 
-    async def _execute_triage_agent(self, state: WorkflowState) -> dict[str, Any]:
+    async def _execute_triage_agent(self, state: WorkflowState) -> WorkflowState:
         """Execute the triage agent graph."""
-        # Placeholder triage logic for future implementation
+
         return {
             "priority_level": "medium",
             "reasoning": "Based on intake information",

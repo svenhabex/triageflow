@@ -3,14 +3,13 @@ from typing import Any
 
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-
-# Load environment variables
-load_dotenv()
 from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 
 from src.state import IntakeConversationInfo, WorkflowState
+
+load_dotenv()
 
 
 # Mock database functions (to be replaced with real database calls later)
@@ -134,7 +133,6 @@ class IntakeAgent:
             else str(last_message)
         )
 
-        # Extract information using LLM
         try:
             extracted_info = await self._llm_parse_conversation(conversation)
         except Exception as e:
@@ -145,7 +143,9 @@ class IntakeAgent:
 
         return {**state, "intake_conversation_info": extracted_info}
 
-    async def _llm_parse_conversation(self, conversation: str) -> dict[str, Any]:
+    async def _llm_parse_conversation(
+        self, conversation: str
+    ) -> IntakeConversationInfo:
         """Use LLM to parse conversation and extract patient information."""
 
         system_prompt = """
@@ -179,7 +179,7 @@ class IntakeAgent:
 
         return response
 
-    async def _get_patient_info(self, state: WorkflowState) -> dict[str, Any]:
+    async def _get_patient_info(self, state: WorkflowState) -> WorkflowState:
         """Retrieve patient history from the database."""
 
         patient_id = None
@@ -201,9 +201,12 @@ class IntakeAgent:
         # Get patient details using mock function
         patient_details = get_patient_details(patient_id)
 
-        return {"patient_details": patient_details, "patient_history_retrieved": True}
+        return {
+            "patient_details": patient_details,
+            "patient_history_retrieved": True,
+        }
 
-    async def run(self, state: WorkflowState) -> dict[str, Any]:
+    async def run(self, state: WorkflowState) -> WorkflowState:
         """Run the intake agent subgraph."""
 
         result = await self.app.ainvoke(state)

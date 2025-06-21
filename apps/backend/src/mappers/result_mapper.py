@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.models import IntakeResponseDTO
+from src.models import AgentNameEnum, IntakeResponseDTO, ResponseAgentMessage
 
 
 class NodeResultMapper(ABC):
@@ -67,3 +67,17 @@ class ResultMapper:
             "message": f"No specific mapper found for node type: {last_node}",
             "raw_state": state,
         }
+
+    @classmethod
+    def create_agent_response(
+        cls, state: dict[str, Any], status: str
+    ) -> ResponseAgentMessage:
+        """Create a ResponseAgentMessage from workflow state."""
+
+        last_node = state.get("last_node", "unknown")
+
+        result_data = cls._map_node_result(state, last_node)
+
+        agent_name = AgentNameEnum.INTAKE
+
+        return ResponseAgentMessage(name=agent_name, data=result_data)

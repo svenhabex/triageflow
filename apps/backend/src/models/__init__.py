@@ -5,6 +5,7 @@ Shared models package.
 from .agent_models import (
     AgentNameEnum,
     IntakeResponseDTO,
+    ResponseAgentMessage,
     StartIntakeRequest,
     WebSocketTriageDTO,
     WebSocketTriageTypeEnum,
@@ -19,4 +20,5 @@ __all__ = [
     "MessageType",
     "WebSocketTriageDTO",
     "WebSocketTriageTypeEnum",
+    "ResponseAgentMessage",
 ]

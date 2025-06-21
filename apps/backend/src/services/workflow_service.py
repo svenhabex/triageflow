@@ -3,6 +3,7 @@ Workflow service for handling workflow execution and streaming.
 """
 
 import json
+import traceback
 from collections.abc import AsyncGenerator
 from typing import Any, Optional
 
@@ -11,6 +12,7 @@ from langchain_core.messages import HumanMessage
 
 from src.graphs import triage_workflow
 from src.mappers import ResultMapper
+from src.models.agent_models import AgentNameEnum, WebSocketTriageTypeEnum
 
 
 class WorkflowService:
@@ -38,6 +40,11 @@ class WorkflowService:
             await self._send_workflow_completed(websocket, session_id)
 
         except Exception as e:
+            # Print full stack trace to console for debugging
+            print(f"=== WebSocket Error for session {session_id} ===")
+            traceback.print_exc()
+            print("=== End Error ===")
+
             await self._send_error(websocket, session_id, str(e))
 
     async def _execute_workflow_stream(
@@ -54,8 +61,8 @@ class WorkflowService:
 
         async for chunk in self.workflow.app.astream(initial_state, config=config):
             for node_name, node_output in chunk.items():
-                # Yield raw node update
-                yield self._create_node_update(node_name, node_output, session_id)
+                # Yield agent running status
+                yield self._create_running_agent_update(node_name, session_id)
 
                 # Yield formatted results for specific nodes
                 async for formatted_message in self._handle_node_completion(
@@ -87,22 +94,23 @@ class WorkflowService:
             )
 
             return {
-                "type": "intake_result",
-                "node": "intake",
-                "result": {
-                    "status": agent_response.status,
-                    "last_node": agent_response.last_node,
-                    "data": agent_response.result,
-                    "messages": [msg.model_dump() for msg in agent_response.messages],
-                    "errors": agent_response.errors,
-                },
+                "type": WebSocketTriageTypeEnum.RESPONSE_AGENT,
+                "name": AgentNameEnum.INTAKE,
+                "data": agent_response.data.model_dump(by_alias=True),
                 "session_id": session_id,
+                "status": "completed",
+                "last_node": node_output.get("last_node", "intake"),
+                "messages": [
+                    msg.content if hasattr(msg, "content") else str(msg)
+                    for msg in node_output.get("messages", [])
+                ],
+                "errors": node_output.get("errors", []),
                 "message": "Intake completed successfully",
             }
         except Exception as e:
             return {
-                "type": "error",
-                "message": f"Failed to format intake result: {str(e)}",
+                "type": WebSocketTriageTypeEnum.ERROR_AGENT,
+                "error": f"Failed to format intake result: {str(e)}",
                 "session_id": session_id,
             }
 
@@ -116,30 +124,38 @@ class WorkflowService:
 
         if last_node == "intake":
             if intake_info:
-                status_type = "intake_completed"
-                message = "Patient intake completed successfully"
+                return {
+                    "type": WebSocketTriageTypeEnum.START_AGENT,
+                    "name": AgentNameEnum.TRIAGE,
+                    "message": "Patient intake completed successfully",
+                    "session_id": session_id,
+                }
             else:
-                status_type = "intake_error"
-                message = "Intake completed but no information extracted"
-
-            return {
-                "type": "supervisor_update",
-                "status": status_type,
-                "message": message,
-                "session_id": session_id,
-            }
+                return {
+                    "type": WebSocketTriageTypeEnum.ERROR_AGENT,
+                    "error": "Intake completed but no information extracted",
+                    "session_id": session_id,
+                }
 
         return None
 
-    def _create_node_update(
-        self, node_name: str, node_output: dict[str, Any], session_id: str
+    def _create_running_agent_update(
+        self, node_name: str, session_id: str
     ) -> dict[str, Any]:
-        """Create raw node update message."""
+        """Create running agent update message."""
+
+        # Map node names to agent names
+        agent_name_map = {
+            "intake": AgentNameEnum.INTAKE,
+            "triage": AgentNameEnum.TRIAGE,
+            "supervisor": AgentNameEnum.COORDINATOR,
+        }
+
+        agent_name = agent_name_map.get(node_name, AgentNameEnum.COORDINATOR)
 
         return {
-            "type": "node_update",
-            "node": node_name,
-            "data": node_output,
+            "type": WebSocketTriageTypeEnum.RUNNING_AGENT,
+            "name": agent_name,
             "session_id": session_id,
         }
 
@@ -149,7 +165,7 @@ class WorkflowService:
         """Send workflow started message."""
 
         message = {
-            "type": "workflow_started",
+            "type": WebSocketTriageTypeEnum.START_WORKFLOW,
             "session_id": session_id,
             "message": "Triage workflow initiated",
         }
@@ -161,7 +177,7 @@ class WorkflowService:
         """Send workflow completed message."""
 
         message = {
-            "type": "workflow_completed",
+            "type": WebSocketTriageTypeEnum.END_WORKFLOW,
             "session_id": session_id,
             "message": "Triage workflow completed",
         }
@@ -173,11 +189,26 @@ class WorkflowService:
         """Send error message."""
 
         message = {
-            "type": "error",
-            "message": error,
+            "type": WebSocketTriageTypeEnum.ERROR_AGENT,
+            "error": error,
             "session_id": session_id,
         }
         await websocket.send_text(json.dumps(message))
+
+    def _make_serializable(self, obj: Any) -> Any:
+        """Convert non-serializable objects to serializable format."""
+        if hasattr(obj, "content"):  # LangChain message objects
+            return {"content": obj.content, "type": obj.__class__.__name__}
+        elif isinstance(obj, dict):
+            return {k: self._make_serializable(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._make_serializable(item) for item in obj]
+        elif hasattr(obj, "model_dump"):  # Pydantic models
+            return obj.model_dump()
+        elif hasattr(obj, "__dict__"):  # Other objects with attributes
+            return {k: self._make_serializable(v) for k, v in obj.__dict__.items()}
+        else:
+            return obj
 
     async def execute_workflow(
         self, conversation: str, thread_id: str = "default"
