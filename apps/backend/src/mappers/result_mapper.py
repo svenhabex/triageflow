@@ -56,7 +56,7 @@ class ResultMapper:
         cls._node_mappers[node_name] = mapper
 
     @classmethod
-    def _map_node_result(cls, state: dict[str, Any], last_node: str) -> Any:
+    def map_node_result(cls, state: dict[str, Any], last_node: str) -> Any:
         """Map the result based on the last_node type."""
 
         mapper = cls._node_mappers.get(last_node)

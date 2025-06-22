@@ -4,7 +4,7 @@ import { inject, Injectable } from '@angular/core';
 import {
   StartIntakeRequest,
   IntakeResponseDTO,
-  WebSocketTriageDTO,
+  TriageDTO,
 } from '@triageflow/shared/models';
 
 import { PatientDataService } from './patient-data.service';
@@ -17,9 +17,7 @@ export class PatientDataFacade {
     return this.#patientDataService.startIntake(request);
   }
 
-  openTriageConnection(
-    sessionId: string,
-  ): WebSocketSubject<WebSocketTriageDTO> {
+  openTriageConnection(sessionId: string): WebSocketSubject<TriageDTO> {
     return this.#patientDataService.openTriageConnection(sessionId);
   }
 }

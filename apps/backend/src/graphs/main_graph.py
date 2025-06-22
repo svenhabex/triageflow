@@ -42,7 +42,7 @@ class TriageWorkflow:
     async def _supervisor_node(self, state: WorkflowState) -> WorkflowState:
         """Coordinate the workflow and decide next steps."""
 
-        return state  # TODO: Implement routing logic
+        return state
 
     def _route_next_step(self, state: WorkflowState) -> str:
         """Route to the next step based on the current state."""

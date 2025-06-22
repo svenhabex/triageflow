@@ -8,7 +8,7 @@ export const AgentNameEnum = {
 
 export type AgentName = (typeof AgentNameEnum)[keyof typeof AgentNameEnum];
 
-export const WebSocketTriageTypeEnum = {
+export const TriageMessageTypeEnum = {
   startWorkflow: 'START_WORKFLOW',
   runningAgent: 'RUNNING_AGENT',
   startAgent: 'START_AGENT',
@@ -18,35 +18,53 @@ export const WebSocketTriageTypeEnum = {
   endWorkflow: 'END_WORKFLOW',
 } as const;
 
-export type WebSocketTriageType =
-  (typeof WebSocketTriageTypeEnum)[keyof typeof WebSocketTriageTypeEnum];
+export type TriageMessageType =
+  (typeof TriageMessageTypeEnum)[keyof typeof TriageMessageTypeEnum];
 
-export type WebSocketTriageDTO =
-  | {
-      type: typeof WebSocketTriageTypeEnum.startWorkflow;
-      conversation: string;
-    }
-  | {
-      type: typeof WebSocketTriageTypeEnum.runningAgent;
-      name: AgentName;
-    }
-  | {
-      type: typeof WebSocketTriageTypeEnum.startAgent;
-      name: AgentName;
-    }
-  | {
-      type: typeof WebSocketTriageTypeEnum.responseAgent;
-      name: typeof AgentNameEnum.intake;
-      data: IntakeResponseDTO;
-    }
-  | {
-      type: typeof WebSocketTriageTypeEnum.errorAgent;
-      error: string;
-    }
-  | {
-      type: typeof WebSocketTriageTypeEnum.humanApproval;
-      approved: boolean;
-    }
-  | {
-      type: typeof WebSocketTriageTypeEnum.endWorkflow;
-    };
+export type TriageMessage = {
+  sessionId: string;
+};
+
+export type StartWorkflowMessage = TriageMessage & {
+  type: typeof TriageMessageTypeEnum.startWorkflow;
+  conversation: string;
+};
+
+export type RunningAgentMessage = TriageMessage & {
+  type: typeof TriageMessageTypeEnum.runningAgent;
+  name: AgentName;
+};
+
+export type StartAgentMessage = TriageMessage & {
+  type: typeof TriageMessageTypeEnum.startAgent;
+  name: AgentName;
+};
+
+export type ResponseAgentMessage = TriageMessage & {
+  type: typeof TriageMessageTypeEnum.responseAgent;
+  name: AgentName;
+  data: IntakeResponseDTO;
+};
+
+export type ErrorAgentMessage = TriageMessage & {
+  type: typeof TriageMessageTypeEnum.errorAgent;
+  error: string;
+};
+
+export type HumanApprovalMessage = TriageMessage & {
+  type: typeof TriageMessageTypeEnum.humanApproval;
+  approved: boolean;
+};
+
+export type EndWorkflowMessage = TriageMessage & {
+  type: typeof TriageMessageTypeEnum.endWorkflow;
+};
+
+export type TriageDTO =
+  | StartWorkflowMessage
+  | RunningAgentMessage
+  | StartAgentMessage
+  | ResponseAgentMessage
+  | ErrorAgentMessage
+  | HumanApprovalMessage
+  | EndWorkflowMessage;

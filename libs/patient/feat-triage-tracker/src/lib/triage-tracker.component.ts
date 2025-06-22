@@ -34,7 +34,7 @@ import { IntakeResultComponent } from '@triageflow/patient/ui';
 import {
   AgentNameEnum,
   MessageSenderEnum,
-  WebSocketTriageTypeEnum,
+  TriageMessageTypeEnum,
 } from '@triageflow/shared/models';
 import {
   ChatLoadingComponent,
@@ -78,7 +78,8 @@ export class TriageTrackerComponent {
       withLatestFrom(this.webSocketSubject$),
       tap(([message, webSocketSubject]) => {
         webSocketSubject.next({
-          type: WebSocketTriageTypeEnum.startWorkflow,
+          sessionId: this.sessionId(),
+          type: TriageMessageTypeEnum.startWorkflow,
           conversation: message,
         });
       }),
@@ -91,22 +92,44 @@ export class TriageTrackerComponent {
   private readonly agentResponses$: Observable<TriageTrackerOutput> =
     this.webSocketSubject$.pipe(
       switchMap((webSocketSubject) => webSocketSubject.asObservable()),
-      filter(
-        (response) => response.type === WebSocketTriageTypeEnum.responseAgent,
-      ),
       map((response) => {
-        switch (response.name) {
-          case AgentNameEnum.intake:
-            return {
-              type: TriageTrackerOutputTypeEnum.Intake,
-              data: response.data,
-            } as TriageTrackerOutput;
-          default:
-            return null;
+        if (response.type === TriageMessageTypeEnum.responseAgent) {
+          switch (response.name) {
+            case AgentNameEnum.intake:
+              return {
+                type: TriageTrackerOutputTypeEnum.Intake,
+                data: response.data,
+              } as TriageTrackerOutput;
+            default:
+              return null;
+          }
+        } else {
+          return null;
         }
       }),
       filter((output): output is TriageTrackerOutput => output !== null),
     );
+
+  readonly loadingText = toSignal(
+    this.webSocketSubject$.pipe(
+      switchMap((webSocketSubject) => webSocketSubject.asObservable()),
+      tap((response) => console.log(response)),
+      map((response) => {
+        if (
+          response.type === TriageMessageTypeEnum.runningAgent &&
+          response.name === AgentNameEnum.intake
+        ) {
+          return `...processing intake...`;
+        }
+
+        if (response.type === TriageMessageTypeEnum.startWorkflow) {
+          return 'Starting workflow...';
+        }
+
+        return 'Processing...';
+      }),
+    ),
+  );
 
   readonly output$ = merge(
     this.userMessageWithSideEffect$,

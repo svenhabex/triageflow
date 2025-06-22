@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
 from src.mappers import ResultMapper
-from src.models import IntakeResponseDTO, WebSocketTriageDTO, WebSocketTriageTypeEnum
+from src.models import IntakeResponseDTO, TriageDTO, TriageMessageTypeEnum
 from src.services import WorkflowService
 
 router = APIRouter()
@@ -36,15 +36,15 @@ async def patient_triage_ws(websocket: WebSocket, session_id: str):
     try:
         while True:
             data = await websocket.receive_text()
-            message_data: WebSocketTriageDTO = json.loads(data)
+            message_data: TriageDTO = json.loads(data)
 
-            if message_data["type"] == WebSocketTriageTypeEnum.START_WORKFLOW:
+            if message_data["type"] == TriageMessageTypeEnum.START_WORKFLOW:
                 await workflow_service.start_workflow_stream(
                     websocket, session_id, message_data["conversation"]
                 )
-            elif message_data["type"] == WebSocketTriageTypeEnum.HUMAN_APPROVAL:
+            elif message_data["type"] == TriageMessageTypeEnum.HUMAN_APPROVAL:
                 await handle_approval(websocket, session_id, message_data)
-            elif message_data["type"] == WebSocketTriageTypeEnum.END_WORKFLOW:
+            elif message_data["type"] == TriageMessageTypeEnum.END_WORKFLOW:
                 await handle_continue_workflow(websocket, session_id)
 
     except WebSocketDisconnect:
@@ -53,45 +53,14 @@ async def patient_triage_ws(websocket: WebSocket, session_id: str):
 
 async def handle_approval(websocket: WebSocket, session_id: str, data: dict):
     """Handle user approval/rejection (placeholder for future implementation)."""
-    try:
-        approved = data.get("approved", False)
-        feedback = data.get("feedback", "")
 
-        await websocket.send_text(
-            json.dumps(
-                {
-                    "type": "approval_received",
-                    "approved": approved,
-                    "feedback": feedback,
-                    "session_id": session_id,
-                    "message": "Approval functionality will be implemented in next phase",
-                }
-            )
-        )
-
-    except Exception as e:
-        await websocket.send_text(
-            json.dumps({"type": "error", "message": str(e), "session_id": session_id})
-        )
+    # TODO: Implement approval functionality
 
 
 async def handle_continue_workflow(websocket: WebSocket, session_id: str):
     """Continue workflow after approval (placeholder for future implementation)."""
-    try:
-        await websocket.send_text(
-            json.dumps(
-                {
-                    "type": "continue_received",
-                    "session_id": session_id,
-                    "message": "Continue workflow functionality will be implemented in next phase",
-                }
-            )
-        )
 
-    except Exception as e:
-        await websocket.send_text(
-            json.dumps({"type": "error", "message": str(e), "session_id": session_id})
-        )
+    # TODO: Implement continue workflow functionality
 
 
 @router.post("/patient/intake", response_model=IntakeResponseDTO)

@@ -8,6 +8,8 @@ from typing import TypeVar, Union
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
+from src.models.intake_models import IntakeResponseDTO
+
 T = TypeVar("T")
 
 
@@ -19,7 +21,7 @@ class AgentNameEnum(str, Enum):
     COORDINATOR = "COORDINATOR"
 
 
-class WebSocketTriageTypeEnum(str, Enum):
+class TriageMessageTypeEnum(str, Enum):
     """Python equivalent of WebSocketTriageTypeEnum from TypeScript."""
 
     START_WORKFLOW = "START_WORKFLOW"
@@ -39,84 +41,64 @@ class StartIntakeRequest(BaseModel):
     conversation: str
 
 
-class IntakeResponseDTO(BaseModel):
-    """Python equivalent of IntakeResult from TypeScript."""
+class TriageMessage(BaseModel):
+    """Base class for all WebSocket messages."""
 
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
-    symptoms: list[str] = []
-    pain_level: int = 0
-    chief_complaint: str = ""
-    medications: list[str] = []
-    allergies: list[str] = []
-    additional_notes: str = ""
+    session_id: str
 
 
-class StartWorkflowMessage(BaseModel):
+class StartWorkflowMessage(TriageMessage):
     """WebSocket message for starting workflow."""
 
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    type: str = WebSocketTriageTypeEnum.START_WORKFLOW
+    type: str = TriageMessageTypeEnum.START_WORKFLOW
     conversation: str
 
 
-class RunningAgentMessage(BaseModel):
+class RunningAgentMessage(TriageMessage):
     """WebSocket message for agent running status."""
 
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    type: str = WebSocketTriageTypeEnum.RUNNING_AGENT
+    type: str = TriageMessageTypeEnum.RUNNING_AGENT
     name: AgentNameEnum
 
 
-class StartAgentMessage(BaseModel):
+class StartAgentMessage(TriageMessage):
     """WebSocket message for starting an agent."""
 
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    type: str = WebSocketTriageTypeEnum.START_AGENT
+    type: str = TriageMessageTypeEnum.START_AGENT
     name: AgentNameEnum
 
 
-class ResponseAgentMessage(BaseModel):
+class ResponseAgentMessage(TriageMessage):
     """WebSocket message for agent response."""
 
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    type: str = WebSocketTriageTypeEnum.RESPONSE_AGENT
+    type: str = TriageMessageTypeEnum.RESPONSE_AGENT
     name: str = AgentNameEnum.INTAKE
     data: IntakeResponseDTO
 
 
-class ErrorAgentMessage(BaseModel):
+class ErrorAgentMessage(TriageMessage):
     """WebSocket message for agent error."""
 
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    type: str = WebSocketTriageTypeEnum.ERROR_AGENT
+    type: str = TriageMessageTypeEnum.ERROR_AGENT
     error: str
 
 
-class HumanApprovalMessage(BaseModel):
+class HumanApprovalMessage(TriageMessage):
     """WebSocket message for human approval."""
 
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    type: str = WebSocketTriageTypeEnum.HUMAN_APPROVAL
+    type: str = TriageMessageTypeEnum.HUMAN_APPROVAL
     approved: bool
 
 
-class EndWorkflowMessage(BaseModel):
+class EndWorkflowMessage(TriageMessage):
     """WebSocket message for ending workflow."""
 
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    type: str = WebSocketTriageTypeEnum.END_WORKFLOW
+    type: str = TriageMessageTypeEnum.END_WORKFLOW
 
 
-# Union type equivalent to WebSocketTriageDTO from TypeScript
-WebSocketTriageDTO = Union[
+TriageDTO = Union[
     StartWorkflowMessage,
     RunningAgentMessage,
     StartAgentMessage,
