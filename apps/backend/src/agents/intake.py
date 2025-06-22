@@ -8,7 +8,8 @@ from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 
-from src.state import IntakeConversationInfo, PatientInfo, WorkflowState
+from src.models import IntakeConversationInfo, PatientInfo
+from src.state import WorkflowState
 
 load_dotenv()
 
@@ -52,7 +53,8 @@ def get_patient_medical_record(patient_identifier: str = "") -> PatientInfo:
     # If no identifier provided, cannot retrieve patient info
     if not patient_identifier or not patient_identifier.strip():
         raise ValueError(
-            "Patient identifier is required. Cannot retrieve medical record without patient name or ID."
+            """Patient identifier is required. 
+            Cannot retrieve medical record without patient name or ID."""
         )
 
     csv_path = Path(__file__).parent.parent.parent / "data" / "patients.csv"
@@ -81,7 +83,7 @@ def get_patient_medical_record(patient_identifier: str = "") -> PatientInfo:
             last_name = row["lastname"].lower()
             full_name = f"{first_name} {last_name}"
 
-            # Check if identifier matches first name, last name, or is contained in full name
+            # Check if identifier matches first name, last name, or in full name
             if (
                 identifier_lower == first_name
                 or identifier_lower == last_name
@@ -104,13 +106,17 @@ def _create_patient_info_from_row(patient_data) -> PatientInfo:
     """Helper function to create PatientInfo from DataFrame row."""
 
     medical_history = (
-        [patient_data["medical_history"]]
+        [
+            item.strip()
+            for item in patient_data["medical_history"].split(";")
+            if item.strip()
+        ]
         if pd.notna(patient_data["medical_history"])
         else []
     )
 
     medications = (
-        [patient_data["medication"]]
+        [item.strip() for item in patient_data["medication"].split(";") if item.strip()]
         if pd.notna(patient_data["medication"]) and patient_data["medication"] != "None"
         else ["None"]
     )

@@ -1,5 +1,5 @@
 <div class="flex flex-col justify-end h-full w-full gap-8">
-  <div class="flex flex-col gap-6 px-4 overflow-auto">
+  <div #scrollContainer class="flex flex-col gap-6 px-4 overflow-auto">
     @for (item of output(); track $index) {
       @switch (item.type) {
         @case (TriageTrackerOutputTypeEnum.Message) {

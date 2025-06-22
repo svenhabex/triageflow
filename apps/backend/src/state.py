@@ -3,43 +3,12 @@ Shared state definitions for the multi-agent workflow system.
 """
 
 from operator import add
-from typing import Annotated, Any, Literal, Optional
+from typing import Annotated, Any, Optional
 
 from langgraph.graph import MessagesState
-from pydantic import BaseModel, Field
 
 from src.core import config
-
-
-class IntakeConversationInfo(BaseModel):
-    """Information about a conversation"""
-
-    symptoms: list[str] = Field(description="list of symptoms")
-    pain_level: int = Field(description="pain level on a 1-10 scale")
-    chief_complaint: str = Field(description="main reason for visit")
-    medications: list[str] = Field(description="list of medications")
-    allergies: list[str] = Field(description="list of allergies")
-    additional_notes: str = Field(description="any other relevant information")
-
-
-class PatientInfo(BaseModel):
-    """Patient information model."""
-
-    patient_id: str
-    first_name: str
-    last_name: str
-    date_of_birth: str
-    medical_history: list[str]
-    medications: list[str]
-
-
-class TriageDecision(BaseModel):
-    """Triage decision model."""
-
-    priority_level: Literal[1, 2, 3, 4, 5]
-    reasoning: str
-    recommended_actions: list[str]
-    estimated_wait_time: Optional[int] = None
+from src.models import IntakeConversationInfo, PatientInfo
 
 
 class WorkflowState(MessagesState):

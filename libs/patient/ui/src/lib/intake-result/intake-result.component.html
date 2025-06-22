@@ -1,6 +1,12 @@
 <div class="flex flex-col gap-4">
   <h3 class="text-2xl font-semibold mb-2">Intake Result</h3>
-  <p-panel header="Summary">
+  <p-panel>
+    <ng-template #header>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-info-circle"></i>
+        <span class="font-bold">Summary</span>
+      </div>
+    </ng-template>
     <div class="flex flex-col gap-6">
       <p>
         {{ result().chiefComplaint }}
@@ -15,7 +21,13 @@
   </p-panel>
 
   <div class="grid grid-cols-2 gap-4">
-    <p-panel header="Symptoms">
+    <p-panel>
+      <ng-template #header>
+        <div class="flex items-center gap-2">
+          <i class="pi pi-tags"></i>
+          <span class="font-bold">Symptoms</span>
+        </div>
+      </ng-template>
       <ul class="flex flex-col gap-2">
         @for (symptom of result().symptoms; track symptom) {
           <li>
@@ -26,7 +38,13 @@
     </p-panel>
 
     <div class="flex flex-col gap-2">
-      <p-panel header="Pain Level">
+      <p-panel>
+        <ng-template #header>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-heart"></i>
+            <span class="font-bold">Pain Level</span>
+          </div>
+        </ng-template>
         <p class="text-sm mb-2">
           <span class="font-semibold">{{ result().painLevel }} / 10</span> ({{
             painLevelDescription()
@@ -41,7 +59,13 @@
         />
       </p-panel>
 
-      <p-panel header="Medications">
+      <p-panel>
+        <ng-template #header>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-receipt"></i>
+            <span class="font-bold">Medications</span>
+          </div>
+        </ng-template>
         @for (medication of result().medications; track medication) {
           <p-tag severity="secondary" [rounded]="true" [value]="medication" />
         } @empty {
@@ -49,7 +73,13 @@
         }
       </p-panel>
 
-      <p-panel header="Allergies">
+      <p-panel>
+        <ng-template #header>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle"></i>
+            <span class="font-bold">Allergies</span>
+          </div>
+        </ng-template>
         @for (allergy of result().allergies; track allergy) {
           <p-tag severity="secondary" [rounded]="true" [value]="allergy" />
         } @empty {
@@ -58,4 +88,43 @@
       </p-panel>
     </div>
   </div>
+
+  @let patientInfo = result().patientInfo;
+  <p-panel>
+    <ng-template #header>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-user"></i>
+        <span class="font-bold">Patient Info</span>
+      </div>
+    </ng-template>
+    <div class="flex flex-col gap-6">
+      <p>
+        {{ patientInfo?.firstName }}
+        {{ patientInfo?.lastName }} ({{ patientInfo?.dateOfBirth }})
+      </p>
+      <div class="flex flex-col gap-1">
+        <h5 class="font-semibold">Medications:</h5>
+        <ul>
+          @for (medication of patientInfo?.medications; track medication) {
+            <li>
+              {{ medication }}
+            </li>
+          }
+        </ul>
+      </div>
+      <div class="flex flex-col gap-1">
+        <h5 class="font-semibold">Medical History:</h5>
+        <ul>
+          @for (
+            medicalHistory of patientInfo?.medicalHistory;
+            track medicalHistory
+          ) {
+            <li>
+              {{ medicalHistory }}
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </p-panel>
 </div>

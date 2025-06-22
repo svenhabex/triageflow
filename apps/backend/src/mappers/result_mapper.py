@@ -20,24 +20,16 @@ class IntakeNodeMapper(NodeResultMapper):
         """Map intake node state to IntakeResult."""
 
         intake_info = state.get("intake_conversation_info")
-
-        if intake_info is None:
-            return IntakeResponseDTO(
-                symptoms=[],
-                pain_level=0,
-                chief_complaint="",
-                medications=[],
-                allergies=[],
-                additional_notes="",
-            )
+        patient_info = state.get("patient_info")
 
         return IntakeResponseDTO(
-            symptoms=intake_info.symptoms,
-            pain_level=intake_info.pain_level,
-            chief_complaint=intake_info.chief_complaint,
-            medications=intake_info.medications,
-            allergies=intake_info.allergies,
-            additional_notes=intake_info.additional_notes,
+            symptoms=intake_info.symptoms or [],
+            pain_level=intake_info.pain_level or 0,
+            chief_complaint=intake_info.chief_complaint or "",
+            medications=intake_info.medications or [],
+            allergies=intake_info.allergies or [],
+            additional_notes=intake_info.additional_notes or "",
+            patient_info=patient_info or None,
         )
 
 
@@ -46,8 +38,6 @@ class ResultMapper:
 
     _node_mappers: dict[str, NodeResultMapper] = {
         "intake": IntakeNodeMapper(),
-        # Add more node mappers here as needed:
-        # "triage": TriageNodeMapper(),
     }
 
     @classmethod

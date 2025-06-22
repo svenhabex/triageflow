@@ -16,7 +16,7 @@ from .agent_models import (
     TriageMessageTypeEnum,
 )
 from .chat_models import ChatMessage, MessageType
-from .intake_models import IntakeResponseDTO
+from .intake_models import IntakeConversationInfo, IntakeResponseDTO, PatientInfo
 
 __all__ = [
     "AgentNameEnum",
@@ -33,4 +33,6 @@ __all__ = [
     "ErrorAgentMessage",
     "HumanApprovalMessage",
     "TriageDTO",
+    "IntakeConversationInfo",
+    "PatientInfo",
 ]

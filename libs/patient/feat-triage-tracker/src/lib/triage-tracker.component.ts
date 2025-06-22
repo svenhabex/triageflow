@@ -16,8 +16,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
+  ElementRef,
   inject,
   input,
+  ViewChild,
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -61,6 +64,8 @@ import {
 })
 export class TriageTrackerComponent {
   readonly #patientDataFacade = inject(PatientDataFacade);
+
+  @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLDivElement>;
 
   readonly id = input<string | null>(null);
 
@@ -113,7 +118,6 @@ export class TriageTrackerComponent {
   readonly loadingText = toSignal(
     this.webSocketSubject$.pipe(
       switchMap((webSocketSubject) => webSocketSubject.asObservable()),
-      tap((response) => console.log(response)),
       map((response) => {
         if (
           response.type === TriageMessageTypeEnum.runningAgent &&
@@ -154,6 +158,19 @@ export class TriageTrackerComponent {
   });
 
   protected readonly TriageTrackerOutputTypeEnum = TriageTrackerOutputTypeEnum;
+
+  constructor() {
+    // Auto-scroll to bottom when output changes
+    effect(() => {
+      const outputItems = this.output();
+      if (outputItems.length > 0 && this.scrollContainer) {
+        setTimeout(() => {
+          this.scrollContainer.nativeElement.scrollTop =
+            this.scrollContainer.nativeElement.scrollHeight;
+        }, 0);
+      }
+    });
+  }
 
   onKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Enter' && event.shiftKey) {
