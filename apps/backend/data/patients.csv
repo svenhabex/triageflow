@@ -1,0 +1,11 @@
+id,firstname,lastname,date_of_birth,medical_history,medication
+1,Peter,Parker,2001-08-10,"Radioactive spider bite resulting in genetic mutation; multiple instances of blunt force trauma; intermittent anxiety.",Ibuprofen 800mg as needed for pain
+2,Harry,Potter,1980-07-31,"Significant forehead scar from traumatic event in infancy; history of multiple orthopedic injuries (broken arm, bludger impact); fainting spells under extreme emotional distress; PTSD.",None
+3,Bruce,Wayne,1972-02-19,"Extensive history of severe physical trauma including multiple fractures, concussions, and deep tissue lacerations; chronic pain; insomnia; PTSD.",High-dose Naproxen for pain; Melatonin for sleep
+4,Clark,Kent,1980-06-18,"No significant medical history under yellow sun; severe, life-threatening systemic reaction to Kryptonite exposure.",None
+5,Tony,Stark,1970-05-29,"History of shrapnel injury to chest (surgically repaired); palladium poisoning (resolved); cardiac arrest; generalized anxiety disorder; history of alcohol abuse (in remission).",Lisinopril for cardiovascular health; Ativan as needed for anxiety
+6,Katniss,Everdeen,1996-05-08,"Second-degree burns on left leg; temporary deafness in left ear from explosion; PTSD; chronic malnutrition in childhood.",Sertraline for PTSD and depression
+7,James,Bond,1968-04-13,"Multiple gunshot wounds; exposure to various toxins and poisons; evidence of liver damage consistent with high alcohol consumption; high-stress lifestyle.",Atorvastatin for high cholesterol; Propranolol for performance anxiety/tremors
+8,Ellen,Ripley,1975-01-07,"Surgical removal of foreign parasitic organism from chest cavity; complications from long-term cryosleep including muscle atrophy and memory gaps; severe PTSD.",Calcium supplements; Escitalopram for PTSD
+9,Indiana,Jones,1965-07-01,"Ophidiophobia (severe fear of snakes); numerous falls and fractures; history of contracting tropical diseases (malaria, dysentery).",Chloroquine (prophylaxis); Loperamide as needed
+10,Sarah,Connor,1965-11-13,"Multiple gunshot and shrapnel wounds; history of institutionalization; severe PTSD with paranoid features.",Risperidone (antipsychotic); Diazepam as needed for acute anxiety

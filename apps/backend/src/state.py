@@ -26,11 +26,11 @@ class PatientInfo(BaseModel):
     """Patient information model."""
 
     patient_id: str
-    name: str
-    age: Optional[int] = None
-    medical_history: Optional[list[str]] = None
-    current_symptoms: Optional[list[str]] = None
-    vital_signs: Optional[dict[str, Any]] = None
+    first_name: str
+    last_name: str
+    date_of_birth: str
+    medical_history: list[str]
+    medications: list[str]
 
 
 class TriageDecision(BaseModel):
