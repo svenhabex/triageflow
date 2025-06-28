@@ -8,7 +8,7 @@ from typing import Annotated, Any, Optional
 from langgraph.graph import MessagesState
 
 from src.core import config
-from src.models import IntakeConversationInfo, PatientInfo
+from src.models import IntakeConversationInfo, PatientInfo, TriageInformation
 
 
 class WorkflowState(MessagesState):
@@ -22,6 +22,7 @@ class WorkflowState(MessagesState):
 
     # Agent outputs
     intake_conversation_info: Optional[IntakeConversationInfo] = None
+    triage_info: Optional[TriageInformation] = None
 
     # Workflow control
     last_node: Optional[str] = None

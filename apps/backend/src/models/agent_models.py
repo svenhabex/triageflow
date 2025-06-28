@@ -3,12 +3,13 @@ Agent response models corresponding to TypeScript interfaces.
 """
 
 from enum import Enum
-from typing import TypeVar, Union
+from typing import Annotated, Literal, TypeVar, Union
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from src.models.intake_models import IntakeResponseDTO
+from src.models.triage_models import TriageResponseDTO
 
 T = TypeVar("T")
 
@@ -70,12 +71,26 @@ class StartAgentMessage(TriageMessage):
     name: AgentNameEnum
 
 
-class ResponseAgentMessage(TriageMessage):
-    """WebSocket message for agent response."""
+class IntakeResponseAgentMessage(TriageMessage):
+    """WebSocket message for intake agent response."""
 
     type: str = TriageMessageTypeEnum.RESPONSE_AGENT
-    name: str = AgentNameEnum.INTAKE
+    name: Literal[AgentNameEnum.INTAKE] = AgentNameEnum.INTAKE
     data: IntakeResponseDTO
+
+
+class TriageResponseAgentMessage(TriageMessage):
+    """WebSocket message for triage agent response."""
+
+    type: str = TriageMessageTypeEnum.RESPONSE_AGENT
+    name: Literal[AgentNameEnum.TRIAGE] = AgentNameEnum.TRIAGE
+    data: TriageResponseDTO
+
+
+ResponseAgentMessage = Annotated[
+    Union[IntakeResponseAgentMessage, TriageResponseAgentMessage],
+    Field(discriminator="name"),
+]
 
 
 class ErrorAgentMessage(TriageMessage):
@@ -102,7 +117,8 @@ TriageDTO = Union[
     StartWorkflowMessage,
     RunningAgentMessage,
     StartAgentMessage,
-    ResponseAgentMessage,
+    IntakeResponseAgentMessage,
+    TriageResponseAgentMessage,
     ErrorAgentMessage,
     HumanApprovalMessage,
     EndWorkflowMessage,

@@ -37,4 +37,4 @@ class IntakeResponseDTO(BaseModel):
     medications: list[str] = []
     allergies: list[str] = []
     additional_notes: str = ""
-    patient_info: PatientInfo = None
+    patient_info: PatientInfo

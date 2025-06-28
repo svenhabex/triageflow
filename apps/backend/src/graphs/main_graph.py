@@ -7,7 +7,7 @@ from typing import Any
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
-from src.agents import intake_agent
+from src.agents import intake_agent, triage_agent
 from src.state import WorkflowState
 
 INTAKE_NODE = "intake"
@@ -30,12 +30,12 @@ class TriageWorkflow:
 
         workflow.add_node(SUPERVISOR_NODE, self._supervisor_node)
         workflow.add_node(INTAKE_NODE, self._intake_node)
-        # workflow.add_node(TRIAGE_NODE, self._triage_node)
+        workflow.add_node(TRIAGE_NODE, self._triage_node)
 
         workflow.set_entry_point(SUPERVISOR_NODE)
         workflow.add_conditional_edges(SUPERVISOR_NODE, self._route_next_step)
         workflow.add_edge(INTAKE_NODE, SUPERVISOR_NODE)
-        # workflow.add_edge(TRIAGE_NODE, SUPERVISOR_NODE)
+        workflow.add_edge(TRIAGE_NODE, SUPERVISOR_NODE)
 
         return workflow
 
@@ -57,9 +57,9 @@ class TriageWorkflow:
 
         # After intake: check if we got results
         if state.get("last_node") == INTAKE_NODE:
-            if state.get("intake_conversation_info"):
+            if state.get("intake_conversation_info") and state.get("patient_info"):
                 # Intake successful - workflow complete for now
-                return END
+                return TRIAGE_NODE
             else:
                 # Intake failed - end workflow (could retry in future)
                 return END
@@ -74,7 +74,6 @@ class TriageWorkflow:
     async def _intake_node(self, state: WorkflowState) -> WorkflowState:
         """Execute the intake agent."""
 
-        # Run the intake subgraph
         result = await intake_agent.run(state)
 
         return {
@@ -85,22 +84,11 @@ class TriageWorkflow:
     async def _triage_node(self, state: WorkflowState) -> WorkflowState:
         """Execute the triage agent."""
 
-        triage_result = await self._execute_triage_agent(state)
+        result = await triage_agent.run(state)
 
         return {
+            **result,
             "last_node": TRIAGE_NODE,
-            "triage_completed": True,
-            "triage_decision": triage_result,
-        }
-
-    async def _execute_triage_agent(self, state: WorkflowState) -> WorkflowState:
-        """Execute the triage agent graph."""
-
-        return {
-            "priority_level": "medium",
-            "reasoning": "Based on intake information",
-            "recommended_actions": ["further_assessment"],
-            "estimated_wait_time": 30,
         }
 
     async def run(

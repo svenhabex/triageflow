@@ -21,7 +21,7 @@ class PatientSpecificWorkflow(TriageWorkflow):
 
     def _build_graph(self) -> StateGraph:
         """Build an extended graph with patient-specific nodes."""
-        workflow = StateGraph(WorkflowState)
+        workflow = StateGraph(WorkflowState, output=WorkflowState)
 
         # Add all standard nodes
         workflow.add_node("intake", self._intake_node)

@@ -1,7 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.models import AgentNameEnum, IntakeResponseDTO, ResponseAgentMessage
+from src.models import (
+    AgentNameEnum,
+    IntakeResponseDTO,
+    ResponseAgentMessage,
+    TriageResponseDTO,
+)
 
 
 class NodeResultMapper(ABC):
@@ -33,11 +38,27 @@ class IntakeNodeMapper(NodeResultMapper):
         )
 
 
+class TriageNodeMapper(NodeResultMapper):
+    """Mapper for triage node results."""
+
+    def map_result(self, state: dict[str, Any]) -> TriageResponseDTO:
+        """Map triage node state to TriageResponseDTO."""
+
+        triage_info = state.get("triage_info")
+
+        return TriageResponseDTO(
+            risk_level=triage_info.risk_level,
+            medical_category=triage_info.medical_category,
+            reasoning=triage_info.reasoning,
+        )
+
+
 class ResultMapper:
     """Main result mapper that delegates to node-specific mappers."""
 
     _node_mappers: dict[str, NodeResultMapper] = {
         "intake": IntakeNodeMapper(),
+        "triage": TriageNodeMapper(),
     }
 
     @classmethod

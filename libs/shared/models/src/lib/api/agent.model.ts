@@ -1,4 +1,5 @@
 import { IntakeResponseDTO } from './intake.model';
+import { TriageResponseDTO } from './triage.model';
 
 export const AgentNameEnum = {
   intake: 'INTAKE',
@@ -40,10 +41,20 @@ export type StartAgentMessage = TriageMessage & {
   name: AgentName;
 };
 
-export type ResponseAgentMessage = TriageMessage & {
+export type ResponseAgentMessage =
+  | IntakeResponseAgentMessage
+  | TriageResponseAgentMessage;
+
+export type IntakeResponseAgentMessage = TriageMessage & {
   type: typeof TriageMessageTypeEnum.responseAgent;
-  name: AgentName;
+  name: typeof AgentNameEnum.intake;
   data: IntakeResponseDTO;
+};
+
+export type TriageResponseAgentMessage = TriageMessage & {
+  type: typeof TriageMessageTypeEnum.responseAgent;
+  name: typeof AgentNameEnum.triage;
+  data: TriageResponseDTO;
 };
 
 export type ErrorAgentMessage = TriageMessage & {

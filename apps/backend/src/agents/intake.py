@@ -157,7 +157,7 @@ class IntakeAgent:
     def _build_graph(self) -> StateGraph:
         """Build the intake agent graph with tool calling capabilities."""
 
-        workflow = StateGraph(WorkflowState)
+        workflow = StateGraph(WorkflowState, output=WorkflowState)
 
         workflow.add_node(
             EXTRACT_CONVERSATION_INFO_NODE, self._extract_conversation_info

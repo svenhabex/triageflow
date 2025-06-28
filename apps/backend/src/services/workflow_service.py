@@ -15,10 +15,11 @@ from src.mappers import ResultMapper
 from src.models import (
     AgentNameEnum,
     ErrorAgentMessage,
-    ResponseAgentMessage,
+    IntakeResponseAgentMessage,
     RunningAgentMessage,
     StartWorkflowMessage,
     TriageMessageTypeEnum,
+    TriageResponseAgentMessage,
 )
 from src.models.agent_models import EndWorkflowMessage
 
@@ -110,6 +111,9 @@ class WorkflowService:
         if node_name == "intake" and node_output.get("intake_conversation_info"):
             yield await self._create_intake_result(node_output, session_id)
 
+        elif node_name == "triage" and node_output.get("triage_info"):
+            yield await self._create_triage_result(node_output, session_id)
+
         elif node_name == "supervisor":
             supervisor_message = self._create_supervisor_update(node_output, session_id)
             if supervisor_message:
@@ -117,15 +121,13 @@ class WorkflowService:
 
     async def _create_intake_result(
         self, node_output: dict[str, Any], session_id: str
-    ) -> ResponseAgentMessage:
+    ) -> Union[IntakeResponseAgentMessage, ErrorAgentMessage]:
         """Create formatted intake result message."""
 
         try:
             intake_response = ResultMapper.map_node_result(node_output, "intake")
 
-            return ResponseAgentMessage(
-                type=TriageMessageTypeEnum.RESPONSE_AGENT,
-                name=AgentNameEnum.INTAKE,
+            return IntakeResponseAgentMessage(
                 data=intake_response,
                 session_id=session_id,
             )
@@ -136,6 +138,25 @@ class WorkflowService:
                 session_id=session_id,
             )
 
+    async def _create_triage_result(
+        self, node_output: dict[str, Any], session_id: str
+    ) -> Union[TriageResponseAgentMessage, ErrorAgentMessage]:
+        """Create formatted triage result message."""
+
+        try:
+            triage_response = ResultMapper.map_node_result(node_output, "triage")
+
+            return TriageResponseAgentMessage(
+                data=triage_response,
+                session_id=session_id,
+            )
+        except Exception as e:
+            return ErrorAgentMessage(
+                type=TriageMessageTypeEnum.ERROR_AGENT,
+                error=f"Failed to format triage result: {str(e)}",
+                session_id=session_id,
+            )
+
     def _create_supervisor_update(
         self, node_output: dict[str, Any], session_id: str
     ) -> Optional[dict[str, Any]]:
@@ -143,6 +164,7 @@ class WorkflowService:
 
         last_node = node_output.get("last_node")
         intake_info = node_output.get("intake_conversation_info")
+        triage_info = node_output.get("triage_info")
 
         if last_node == "intake":
             if intake_info:
@@ -159,6 +181,21 @@ class WorkflowService:
                     "session_id": session_id,
                 }
 
+        elif last_node == "triage":
+            if triage_info:
+                return {
+                    "type": TriageMessageTypeEnum.START_AGENT,
+                    "name": AgentNameEnum.TRIAGE,
+                    "message": "Triage completed successfully",
+                    "session_id": session_id,
+                }
+            else:
+                return {
+                    "type": TriageMessageTypeEnum.ERROR_AGENT,
+                    "error": "Triage completed but no information extracted",
+                    "session_id": session_id,
+                }
+
         return None
 
     def _create_running_agent_update(
@@ -170,7 +207,7 @@ class WorkflowService:
         agent_name_map = {
             "intake": AgentNameEnum.INTAKE,
             "triage": AgentNameEnum.TRIAGE,
-            "supervisor": AgentNameEnum.COORDINATOR,
+            "coordinator": AgentNameEnum.COORDINATOR,
         }
 
         agent_name = agent_name_map.get(node_name, AgentNameEnum.COORDINATOR)

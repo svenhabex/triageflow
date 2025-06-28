@@ -1,0 +1,65 @@
+<div class="flex flex-col gap-4">
+  <h3 class="text-2xl font-semibold mb-2">Triage Result</h3>
+  <p-panel>
+    <div class="flex flex-col gap-6">
+      <!-- Risk Level Bar -->
+      <div class="flex flex-col gap-3">
+        <div class="flex justify-between items-center">
+          <span class="font-semibold">Risk Level:</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div [class]="`risk-progress-bar ${progressBarClass()}`">
+          <p-progressBar [value]="progressValue()" [showValue]="false" />
+        </div>
+
+        <!-- Level Indicators -->
+        <div class="flex justify-between items-center px-1">
+          @for (indicator of levelIndicators(); track indicator.level) {
+            <div class="flex flex-col items-center gap-1">
+              <div
+                class="w-3 h-3 rounded-full border-2 transition-all duration-300"
+                [class.bg-current]="indicator.isActive"
+                [class.border-current]="indicator.isActive"
+                [class.border-gray-300]="!indicator.isActive"
+                [class.scale-125]="indicator.isCurrentLevel"
+                [style.color]="indicator.isActive ? progressColor() : '#d1d5db'"
+              ></div>
+              <span
+                class="text-xs font-medium transition-colors duration-300"
+                [class.text-current]="indicator.isActive"
+                [class.text-gray-400]="!indicator.isActive"
+                [style.color]="indicator.isActive ? progressColor() : '#9ca3af'"
+              >
+                {{ indicator.level }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- Current Risk Level Value -->
+        <div class="flex justify-center">
+          <span
+            class="block text-3xl font-bold text-white p-2 rounded-lg shadow-md"
+            [style.background-color]="progressColor()"
+          >
+            {{ riskLevelDescription() }}
+          </span>
+        </div>
+      </div>
+
+      <p>
+        <span class="font-semibold">Reasoning:</span><br />
+        {{ result().reasoning }}
+      </p>
+      <p>
+        <span class="block mb-2 font-semibold">Medical Category:</span>
+        <p-tag
+          severity="info"
+          [rounded]="true"
+          [value]="result().medicalCategory"
+        />
+      </p>
+    </div>
+  </p-panel>
+</div>

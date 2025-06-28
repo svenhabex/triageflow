@@ -33,7 +33,10 @@ import {
   PatientDataFacade,
   providePatientDataAccess,
 } from '@triageflow/patient/data-access';
-import { IntakeResultComponent } from '@triageflow/patient/ui';
+import {
+  IntakeResultComponent,
+  TriageResultComponent,
+} from '@triageflow/patient/ui';
 import {
   AgentNameEnum,
   MessageSenderEnum,
@@ -59,6 +62,7 @@ import {
     ReactiveFormsModule,
     ButtonModule,
     IntakeResultComponent,
+    TriageResultComponent,
   ],
   providers: [providePatientDataAccess()],
 })
@@ -105,6 +109,11 @@ export class TriageTrackerComponent {
                 type: TriageTrackerOutputTypeEnum.Intake,
                 data: response.data,
               } as TriageTrackerOutput;
+            case AgentNameEnum.triage:
+              return {
+                type: TriageTrackerOutputTypeEnum.Triage,
+                data: response.data,
+              } as TriageTrackerOutput;
             default:
               return null;
           }
@@ -115,6 +124,26 @@ export class TriageTrackerComponent {
       filter((output): output is TriageTrackerOutput => output !== null),
     );
 
+  readonly isLoading = toSignal(
+    merge(
+      this.userMessages$.pipe(map(() => true)),
+      this.webSocketSubject$.pipe(
+        switchMap((webSocketSubject) => webSocketSubject.asObservable()),
+        map((response) => {
+          if (
+            response.type === TriageMessageTypeEnum.runningAgent ||
+            response.type === TriageMessageTypeEnum.startAgent
+          ) {
+            return true;
+          }
+
+          return false;
+        }),
+      ),
+    ),
+    { initialValue: false },
+  );
+
   readonly loadingText = toSignal(
     this.webSocketSubject$.pipe(
       switchMap((webSocketSubject) => webSocketSubject.asObservable()),
@@ -124,6 +153,13 @@ export class TriageTrackerComponent {
           response.name === AgentNameEnum.intake
         ) {
           return `...processing intake...`;
+        }
+
+        if (
+          response.type === TriageMessageTypeEnum.runningAgent &&
+          response.name === AgentNameEnum.triage
+        ) {
+          return `...processing triage...`;
         }
 
         if (response.type === TriageMessageTypeEnum.startWorkflow) {
@@ -140,18 +176,13 @@ export class TriageTrackerComponent {
     this.agentResponses$,
   ).pipe(
     scan((acc, curr) => [...acc, curr], [] as TriageTrackerOutput[]),
+    tap((output) => {
+      console.log('output', output);
+    }),
     share(),
   );
 
   readonly output = toSignal(this.output$, { initialValue: [] });
-
-  readonly isLoading = toSignal(
-    merge(
-      this.userMessages$.pipe(map(() => true)),
-      this.output$.pipe(map(() => false)),
-    ),
-    { initialValue: false },
-  );
 
   readonly form = new FormGroup({
     message: new FormControl('', [Validators.required]),
