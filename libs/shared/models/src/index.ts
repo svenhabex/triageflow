@@ -1,4 +1,5 @@
 export * from './lib/api/agent.model';
+export * from './lib/api/coordinator.model';
 export * from './lib/api/intake.model';
 export * from './lib/api/triage.model';
 export * from './lib/flow.model';

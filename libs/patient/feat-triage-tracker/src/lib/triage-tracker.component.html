@@ -14,6 +14,9 @@
         @case (TriageTrackerOutputTypeEnum.Triage) {
           <flow-triage-result [result]="item.data" />
         }
+        @case (TriageTrackerOutputTypeEnum.Coordinator) {
+          <flow-coordinator-result [result]="item.data" />
+        }
       }
     }
 
@@ -33,25 +36,32 @@
     }
   </div>
 
-  <div class="px-4">
-    <form
-      class="flex items-end gap-4 rounded-xl bg-white shadow-xl"
-      [formGroup]="form"
-      (ngSubmit)="triggerSendMessage()"
-    >
-      <textarea
-        name="input"
-        class="flex-1 p-4 field-sizing-content border-none bg-transparent h-full max-h-[400px] resize-none outline-none placeholder:text-surface-400"
-        pTextarea
-        formControlName="message"
-        placeholder="Fill in the conversation with the patient..."
-        (keydown)="onKeyDown($event)"
-      ></textarea>
-      <div class="flex pr-4 pb-4 pt-4">
-        <button pButton icon="pi pi-arrow-up" severity="contrast" type="submit">
-          Send
-        </button>
-      </div>
-    </form>
-  </div>
+  @if (showConversationForm()) {
+    <div class="px-4">
+      <form
+        class="flex items-end gap-4 rounded-xl bg-white shadow-xl"
+        [formGroup]="form"
+        (ngSubmit)="triggerSendMessage()"
+      >
+        <textarea
+          name="input"
+          class="flex-1 p-4 field-sizing-content border-none bg-transparent h-full max-h-[400px] resize-none outline-none placeholder:text-surface-400"
+          pTextarea
+          formControlName="message"
+          placeholder="Fill in the conversation with the patient..."
+          (keydown)="onKeyDown($event)"
+        ></textarea>
+        <div class="flex pr-4 pb-4 pt-4">
+          <button
+            pButton
+            icon="pi pi-arrow-up"
+            severity="contrast"
+            type="submit"
+          >
+            Send
+          </button>
+        </div>
+      </form>
+    </div>
+  }
 </div>

@@ -4,6 +4,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 
+from src.core.llm_monitor import track_llm_request
 from src.models import TriageInformation
 from src.state import WorkflowState
 
@@ -12,7 +13,7 @@ def _get_model():
     """Get the ChatGoogleGenerativeAI model, initialized lazily."""
 
     return ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash-preview-05-20",
+        model="gemini-2.5-flash-lite-preview-06-17",
         temperature=1.0,
         max_retries=1,
         google_api_key=os.getenv("GEMINI_API_KEY"),
@@ -58,6 +59,7 @@ class TriageAgent:
 
         return result
 
+    @track_llm_request("triage", "_assess", "structured")
     async def _assess(self, state: WorkflowState) -> WorkflowState:
         """
         Assess the patient's symptoms and history to determine the appropriate level of care.

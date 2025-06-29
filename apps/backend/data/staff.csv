@@ -1,6 +1,6 @@
 ID,firstName,lastName,role,speciality,status
 doc001,Gregory,House,arts,Diagnostics,busy
-doc002,Meredith,Grey,arts-assistent,Trauma,available
+doc002,Meredith,Grey,arts-assistent,Trauma,busy
 doc003,John,Dorian,arts-assistent,Internal Medicine,available
 doc004,Perry,Cox,arts,Internal Medicine,busy
 doc005,John,Carter,arts,Emergency Medicine,available

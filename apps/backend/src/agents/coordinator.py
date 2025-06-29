@@ -6,6 +6,7 @@ from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph
 
+from src.core.llm_monitor import track_llm_request
 from src.models import StaffMember
 from src.state import WorkflowState
 
@@ -20,7 +21,7 @@ def _get_model():
     """Get the ChatGoogleGenerativeAI model, initialized lazily."""
 
     return ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash-preview-05-20",
+        model="gemini-2.5-flash-lite-preview-06-17",
         temperature=1.0,
         max_retries=1,
         google_api_key=os.getenv("GEMINI_API_KEY"),
@@ -309,6 +310,7 @@ class CoordinatorAgent:
 
         return updated_state
 
+    @track_llm_request("coordinator", "_coordinate_staff_assignment", "tool_calling")
     async def _coordinate_staff_assignment(self, state: WorkflowState) -> WorkflowState:
         """
         Coordinate staff assignment based on triage and intake information.

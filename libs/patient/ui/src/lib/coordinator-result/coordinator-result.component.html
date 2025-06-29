@@ -1,0 +1,40 @@
+<div class="flex flex-col gap-4">
+  <h3 class="text-2xl font-semibold mb-2">Coordinator Result</h3>
+  <p-panel>
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-col gap-3">
+        <h4 class="text-lg font-semibold">Available Staff</h4>
+        <p-table
+          [value]="result().availableStaff"
+          [tableStyle]="{ 'min-width': '50rem' }"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>First Name</th>
+              <th>Last Name</th>
+              <th>Role</th>
+              <th>Speciality</th>
+              <th>Status</th>
+            </tr>
+          </ng-template>
+          <ng-template let-staff pTemplate="body">
+            <tr>
+              <td>{{ staff.firstName }}</td>
+              <td>{{ staff.lastName }}</td>
+              <td>{{ staff.role }}</td>
+              <td>{{ staff.speciality }}</td>
+              <td>
+                <p-tag
+                  [value]="staff.status"
+                  [severity]="
+                    staff.status === 'available' ? 'success' : 'danger'
+                  "
+                />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </p-panel>
+</div>

@@ -1,3 +1,4 @@
+import { CoordinatorResponseDTO } from './coordinator.model';
 import { IntakeResponseDTO } from './intake.model';
 import { TriageResponseDTO } from './triage.model';
 
@@ -43,7 +44,8 @@ export type StartAgentMessage = TriageMessage & {
 
 export type ResponseAgentMessage =
   | IntakeResponseAgentMessage
-  | TriageResponseAgentMessage;
+  | TriageResponseAgentMessage
+  | CoordinatorResponseAgentMessage;
 
 export type IntakeResponseAgentMessage = TriageMessage & {
   type: typeof TriageMessageTypeEnum.responseAgent;
@@ -55,6 +57,12 @@ export type TriageResponseAgentMessage = TriageMessage & {
   type: typeof TriageMessageTypeEnum.responseAgent;
   name: typeof AgentNameEnum.triage;
   data: TriageResponseDTO;
+};
+
+export type CoordinatorResponseAgentMessage = TriageMessage & {
+  type: typeof TriageMessageTypeEnum.responseAgent;
+  name: typeof AgentNameEnum.coordinator;
+  data: CoordinatorResponseDTO;
 };
 
 export type ErrorAgentMessage = TriageMessage & {

@@ -1,5 +1,6 @@
 import {
   ChatMessage,
+  CoordinatorResponseDTO,
   IntakeResponseDTO,
   TriageResponseDTO,
 } from '@triageflow/shared/models';
@@ -7,6 +8,7 @@ import {
 export const TriageTrackerOutputTypeEnum = {
   Intake: 'INTAKE',
   Triage: 'TRIAGE',
+  Coordinator: 'COORDINATOR',
   Message: 'MESSAGE',
 } as const;
 
@@ -21,6 +23,10 @@ export type TriageTrackerOutput =
   | {
       type: typeof TriageTrackerOutputTypeEnum.Triage;
       data: TriageResponseDTO;
+    }
+  | {
+      type: typeof TriageTrackerOutputTypeEnum.Coordinator;
+      data: CoordinatorResponseDTO;
     }
   | {
       type: typeof TriageTrackerOutputTypeEnum.Message;

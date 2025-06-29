@@ -34,6 +34,7 @@ import {
   providePatientDataAccess,
 } from '@triageflow/patient/data-access';
 import {
+  CoordinatorResultComponent,
   IntakeResultComponent,
   TriageResultComponent,
 } from '@triageflow/patient/ui';
@@ -54,7 +55,6 @@ import {
 @Component({
   selector: 'flow-triage-tracker',
   templateUrl: 'triage-tracker.component.html',
-  styleUrls: ['triage-tracker.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MessageBubbleComponent,
@@ -63,8 +63,10 @@ import {
     ButtonModule,
     IntakeResultComponent,
     TriageResultComponent,
+    CoordinatorResultComponent,
   ],
   providers: [providePatientDataAccess()],
+  host: { class: 'flex items-end py-8 mx-auto max-w-[1000px] min-h-full' },
 })
 export class TriageTrackerComponent {
   readonly #patientDataFacade = inject(PatientDataFacade);
@@ -114,6 +116,11 @@ export class TriageTrackerComponent {
                 type: TriageTrackerOutputTypeEnum.Triage,
                 data: response.data,
               } as TriageTrackerOutput;
+            case AgentNameEnum.coordinator:
+              return {
+                type: TriageTrackerOutputTypeEnum.Coordinator,
+                data: response.data,
+              } as TriageTrackerOutput;
             default:
               return null;
           }
@@ -152,14 +159,21 @@ export class TriageTrackerComponent {
           response.type === TriageMessageTypeEnum.runningAgent &&
           response.name === AgentNameEnum.intake
         ) {
-          return `...processing intake...`;
+          return `...Extracting patient information...`;
         }
 
         if (
           response.type === TriageMessageTypeEnum.runningAgent &&
           response.name === AgentNameEnum.triage
         ) {
-          return `...processing triage...`;
+          return `...Assessing patient's condition...`;
+        }
+
+        if (
+          response.type === TriageMessageTypeEnum.runningAgent &&
+          response.name === AgentNameEnum.coordinator
+        ) {
+          return `...Assigning staff...`;
         }
 
         if (response.type === TriageMessageTypeEnum.startWorkflow) {
@@ -180,6 +194,11 @@ export class TriageTrackerComponent {
       console.log('output', output);
     }),
     share(),
+  );
+
+  readonly showConversationForm = toSignal(
+    this.output$.pipe(map((output) => output.length <= 0)),
+    { initialValue: true },
   );
 
   readonly output = toSignal(this.output$, { initialValue: [] });
