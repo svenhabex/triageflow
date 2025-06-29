@@ -6,7 +6,8 @@ import asyncio
 
 from langchain_core.messages import HumanMessage
 
-from src.agents.intake import intake_agent
+from src.agents import intake_agent
+from src.agents.intake import get_patient_medical_record
 from src.state import WorkflowState
 
 
@@ -212,8 +213,6 @@ async def test_specific_patient_search():
 
     print("\n🔍 Testing Specific Patient Search")
     print("=" * 40)
-
-    from src.agents.intake import get_patient_medical_record
 
     test_searches = [
         "Tony Stark",

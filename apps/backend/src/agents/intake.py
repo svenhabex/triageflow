@@ -330,14 +330,38 @@ class IntakeAgent:
         """
         Analyzes intake conversation and coordinates gathering of additional
         patient information using available tools as needed.
+        Uses the original conversation text to find patient names for medical record lookup.
         """
+        from langchain_core.messages import HumanMessage, SystemMessage
+
+        retry_count = state.get("retry_count", 0) + 1
+
         messages = state.get("messages", [])
-        retry_count = state.get("retry_count", 0)
+        if not messages:
+            return {
+                **state,
+                "errors": state.get("errors", [])
+                + ["No conversation found in messages"],
+                "retry_count": retry_count,
+            }
 
-        # Increment retry count
-        retry_count += 1
+        conversation = None
+        for message in messages:
+            if (
+                hasattr(message, "content")
+                and hasattr(message, "__class__")
+                and "HumanMessage" in str(type(message))
+            ):
+                conversation = message.content
+                break
 
-        # Create a system message to guide the LLM's analysis and information gathering
+        if not conversation:
+            return {
+                **state,
+                "errors": state.get("errors", []) + ["No conversation content found"],
+                "retry_count": retry_count,
+            }
+
         system_message = SystemMessage(
             content="""You are a medical intake information coordinator with access to the hospital's patient database.
 
@@ -345,29 +369,33 @@ class IntakeAgent:
             1. Analyze the conversation between nurse and patient
             2. Determine if you need additional patient information for a complete intake
             3. Use available tools when medically appropriate for patient safety
-            
+
             MEDICAL SAFETY GUIDELINES:
             - Always check patient database records when a patient name is mentioned
             - Compare conversation information with existing medical records  
             - Look for medication conflicts, allergy discrepancies, or missing critical information
             - Ensure complete and accurate intake documentation
-            
+
             AVAILABLE TOOLS:
             - get_patient_medical_record: Access complete patient medical history, medications, and allergies
-            
+
             Use your medical judgment to determine when database access is necessary for safe patient care.
             Extract the patient's name from the conversation and search their medical record if mentioned."""
         )
 
-        # Add system message if not already present
-        if not messages or not isinstance(messages[0], SystemMessage):
-            messages = [system_message] + messages
+        context_message = HumanMessage(
+            content=f"""Please analyze the following conversation between nurse and patient and determine if additional patient information is needed:
+            {conversation}
+            If a patient name is mentioned in the conversation, please use the get_patient_medical_record tool to retrieve their complete medical history."""
+        )
+
+        intake_messages = [system_message, context_message]
 
         try:
-            response = await self.model.ainvoke(messages)
+            response = await self.model.ainvoke(intake_messages)
 
-            # Update messages and state
-            updated_messages = messages + [response]
+            full_messages = state.get("messages", [])
+            updated_messages = full_messages + intake_messages + [response]
 
             return {
                 **state,
@@ -389,6 +417,3 @@ class IntakeAgent:
         result = await self.app.ainvoke(state)
 
         return result
-
-
-intake_agent = IntakeAgent()

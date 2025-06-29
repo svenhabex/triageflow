@@ -7,11 +7,12 @@ from typing import Any
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
-from src.agents import intake_agent, triage_agent
+from src.agents import coordinator_agent, intake_agent, triage_agent
 from src.state import WorkflowState
 
 INTAKE_NODE = "intake"
 TRIAGE_NODE = "triage"
+COORDINATOR_NODE = "coordinator"
 SUPERVISOR_NODE = "supervisor"
 
 
@@ -31,11 +32,13 @@ class TriageWorkflow:
         workflow.add_node(SUPERVISOR_NODE, self._supervisor_node)
         workflow.add_node(INTAKE_NODE, self._intake_node)
         workflow.add_node(TRIAGE_NODE, self._triage_node)
+        workflow.add_node(COORDINATOR_NODE, self._coordinator_node)
 
         workflow.set_entry_point(SUPERVISOR_NODE)
         workflow.add_conditional_edges(SUPERVISOR_NODE, self._route_next_step)
         workflow.add_edge(INTAKE_NODE, SUPERVISOR_NODE)
         workflow.add_edge(TRIAGE_NODE, SUPERVISOR_NODE)
+        workflow.add_edge(COORDINATOR_NODE, SUPERVISOR_NODE)
 
         return workflow
 
@@ -58,15 +61,16 @@ class TriageWorkflow:
         # After intake: check if we got results
         if state.get("last_node") == INTAKE_NODE:
             if state.get("intake_conversation_info") and state.get("patient_info"):
-                # Intake successful - workflow complete for now
                 return TRIAGE_NODE
             else:
-                # Intake failed - end workflow (could retry in future)
                 return END
 
-        # After triage (future implementation)
+        # After triage: check if we got results
         if state.get("last_node") == TRIAGE_NODE:
-            return END
+            if state.get("triage_info"):
+                return COORDINATOR_NODE
+            else:
+                return END
 
         # Fallback: if somehow we don't have intake info yet, try intake
         return INTAKE_NODE if not state.get("intake_conversation_info") else END
@@ -89,6 +93,16 @@ class TriageWorkflow:
         return {
             **result,
             "last_node": TRIAGE_NODE,
+        }
+
+    async def _coordinator_node(self, state: WorkflowState) -> WorkflowState:
+        """Execute the coordinator agent."""
+
+        result = await coordinator_agent.run(state)
+
+        return {
+            **result,
+            "last_node": COORDINATOR_NODE,
         }
 
     async def run(

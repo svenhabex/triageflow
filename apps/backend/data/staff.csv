@@ -1,0 +1,16 @@
+ID,firstName,lastName,role,speciality,status
+doc001,Gregory,House,arts,Diagnostics,busy
+doc002,Meredith,Grey,arts-assistent,Trauma,available
+doc003,John,Dorian,arts-assistent,Internal Medicine,available
+doc004,Perry,Cox,arts,Internal Medicine,busy
+doc005,John,Carter,arts,Emergency Medicine,available
+doc006,James,Wilson,arts,Oncology,busy
+doc007,Remy,Hadley,arts-assistent,Internal Medicine,available
+doc008,Christine,Palmer,arts,Trauma,busy
+doc009,Stephen,Strange,arts,Neurology,busy
+doc010,John,Watson,arts,General,available
+nurse001,Carla,Espinosa,verpleegkundige,General,available
+nurse002,Samantha,Taggart,verpleegkundige,Emergency Medicine,busy
+nurse003,Carol,Hathaway,hoofdverpleegkundige,General,available
+doc011,Leonard,McCoy,arts,General Surgery,busy
+doc012,Beverly,Crusher,arts,General Surgery,available

@@ -1,23 +1,105 @@
 :host {
+  --esi-color-1: #dc2626;
+  --esi-color-2: #f97316;
+  --esi-color-3: #eab308;
+  --esi-color-4: #22c55e;
+  --esi-color-5: #2275cf;
   --p-progressbar-border-radius: 9999px;
 }
 
 .progress-level-1 {
-  --p-progressbar-value-background: #22c55e;
+  --p-progressbar-value-background: var(--esi-color-1);
 }
 
 .progress-level-2 {
-  --p-progressbar-value-background: #eab308;
+  --p-progressbar-value-background: var(--esi-color-2);
 }
 
 .progress-level-3 {
-  --p-progressbar-value-background: #f97316;
+  --p-progressbar-value-background: var(--esi-color-3);
 }
 
 .progress-level-4 {
-  --p-progressbar-value-background: #ef4444;
+  --p-progressbar-value-background: var(--esi-color-4);
 }
 
 .progress-level-5 {
-  --p-progressbar-value-background: #dc2626;
+  --p-progressbar-value-background: var(--esi-color-5);
+}
+
+.esi-background-color-1 {
+  background-color: var(--esi-color-1);
+}
+
+.esi-background-color-2 {
+  background-color: var(--esi-color-2);
+}
+
+.esi-background-color-3 {
+  background-color: var(--esi-color-3);
+}
+
+.esi-background-color-4 {
+  background-color: var(--esi-color-4);
+}
+
+.esi-background-color-5 {
+  background-color: var(--esi-color-5);
+}
+
+.esi-background-light-1 {
+  background-color: rgb(from var(--esi-color-1) r g b / 0.1);
+}
+
+.esi-background-light-2 {
+  background-color: rgb(from var(--esi-color-2) r g b / 0.1);
+}
+
+.esi-background-light-3 {
+  background-color: rgb(from var(--esi-color-3) r g b / 0.1);
+}
+
+.esi-background-light-4 {
+  background-color: rgb(from var(--esi-color-4) r g b / 0.1);
+}
+
+.esi-background-light-5 {
+  background-color: rgb(from var(--esi-color-5) r g b / 0.1);
+}
+
+.esi-color-1 {
+  color: var(--esi-color-1);
+}
+.esi-color-2 {
+  color: var(--esi-color-2);
+}
+
+.esi-color-3 {
+  color: var(--esi-color-3);
+}
+.esi-color-4 {
+  color: var(--esi-color-4);
+}
+
+.esi-color-5 {
+  color: var(--esi-color-5);
+}
+
+.esi-border-color-1 {
+  border-color: var(--esi-color-1);
+}
+
+.esi-border-color-2 {
+  border-color: var(--esi-color-2);
+}
+
+.esi-border-color-3 {
+  border-color: var(--esi-color-3);
+}
+.esi-border-color-4 {
+  border-color: var(--esi-color-4);
+}
+
+.esi-border-color-5 {
+  border-color: var(--esi-color-5);
 }

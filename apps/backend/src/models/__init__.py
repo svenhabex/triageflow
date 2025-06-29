@@ -4,6 +4,7 @@ Shared models package.
 
 from .agent_models import (
     AgentNameEnum,
+    CoordinatorResponseAgentMessage,
     EndWorkflowMessage,
     ErrorAgentMessage,
     HumanApprovalMessage,
@@ -18,6 +19,7 @@ from .agent_models import (
     TriageResponseAgentMessage,
 )
 from .chat_models import ChatMessage, MessageType
+from .coordiantor_models import CoordinatorResponseDTO, StaffMember
 from .intake_models import IntakeConversationInfo, IntakeResponseDTO, PatientInfo
 from .triage_models import TriageInformation, TriageResponseDTO
 
@@ -42,4 +44,7 @@ __all__ = [
     "PatientInfo",
     "TriageInformation",
     "TriageResponseDTO",
+    "CoordinatorResponseDTO",
+    "StaffMember",
+    "CoordinatorResponseAgentMessage",
 ]

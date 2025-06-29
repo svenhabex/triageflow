@@ -14,42 +14,64 @@ export class TriageResultComponent {
   readonly result = input.required<TriageResponseDTO>();
 
   readonly progressValue = computed(() =>
-    Math.min(Math.max(((this.result().riskLevel - 1) / 4) * 100, 0), 100),
+    Math.min(Math.max(((5 - this.result().esiLevel) / 4) * 100, 0), 100),
   );
-
-  readonly progressColor = computed(() => {
-    if (this.result().riskLevel <= 1) return '#22c55e';
-    if (this.result().riskLevel <= 2) return '#eab308';
-    if (this.result().riskLevel <= 3) return '#f97316';
-    if (this.result().riskLevel <= 4) return '#ef4444';
-    return '#dc2626';
-  });
-
-  // Computed signal for progress bar CSS class based on risk level
-  readonly progressBarClass = computed(() => {
-    const riskLevel = this.result().riskLevel;
-    if (riskLevel <= 1) return 'progress-level-1';
-    if (riskLevel <= 2) return 'progress-level-2';
-    if (riskLevel <= 3) return 'progress-level-3';
-    if (riskLevel <= 4) return 'progress-level-4';
-    return 'progress-level-5';
-  });
-
+  readonly esiProgressColor = computed(() =>
+    this.getEsiClass('progress-level'),
+  );
+  readonly esiBackgroundColor = computed(() =>
+    this.getEsiClass('esi-background-color'),
+  );
+  readonly esiColor = computed(() => this.getEsiClass('esi-color'));
+  readonly esiBorderColor = computed(() =>
+    this.getEsiClass('esi-border-color'),
+  );
+  readonly esiBackgroundColorLight = computed(() =>
+    this.getEsiClass('esi-background-light'),
+  );
   readonly levelIndicators = computed(() => {
-    const currentLevel = this.result().riskLevel;
-    return Array.from({ length: 5 }, (_, i) => ({
-      level: i + 1,
-      isActive: i + 1 <= currentLevel,
-      isCurrentLevel: i + 1 === Math.floor(currentLevel),
+    const currentLevel = this.result().esiLevel;
+    return [5, 4, 3, 2, 1].map((level) => ({
+      level,
+      isActive: level >= currentLevel,
+      isCurrentLevel: level === Math.floor(currentLevel),
     }));
   });
+  readonly urgencyInfo = computed(() => {
+    const esiLevel = this.result().esiLevel;
+    if (esiLevel <= 1)
+      return {
+        description: 'Critical - Immediate',
+        icon: 'pi-exclamation-triangle',
+      };
 
-  readonly riskLevelDescription = computed(() => {
-    const riskLevel = this.result().riskLevel;
-    if (riskLevel <= 1) return 'ESI 1';
-    if (riskLevel <= 2) return 'ESI 2';
-    if (riskLevel <= 3) return 'ESI 3';
-    if (riskLevel <= 4) return 'ESI 4';
-    return 'ESI 5';
+    if (esiLevel <= 2)
+      return {
+        description: 'High Priority - Urgent',
+        icon: 'pi-exclamation-circle',
+      };
+
+    if (esiLevel <= 3)
+      return {
+        description: 'Moderate Priority',
+        icon: 'pi-info-circle',
+      };
+
+    if (esiLevel <= 4)
+      return {
+        description: 'Low Priority',
+        icon: 'pi-clock',
+      };
+
+    return {
+      description: 'Routine - Non-urgent',
+      icon: 'pi-check-circle',
+    };
   });
+
+  private getEsiClass(baseClassName: string): string {
+    const esiLevel = this.result().esiLevel;
+    const levelNumber = Math.min(5, Math.max(1, Math.ceil(esiLevel)));
+    return `${baseClassName}-${levelNumber}`;
+  }
 }

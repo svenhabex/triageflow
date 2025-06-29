@@ -1,5 +1,5 @@
 export type TriageResponseDTO = {
-  riskLevel: number;
+  esiLevel: number;
   reasoning: string;
   medicalCategory: string;
 };

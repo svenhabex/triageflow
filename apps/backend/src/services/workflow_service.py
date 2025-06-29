@@ -14,6 +14,7 @@ from src.graphs import triage_workflow
 from src.mappers import ResultMapper
 from src.models import (
     AgentNameEnum,
+    CoordinatorResponseAgentMessage,
     ErrorAgentMessage,
     IntakeResponseAgentMessage,
     RunningAgentMessage,
@@ -48,7 +49,6 @@ class WorkflowService:
             await self._send_workflow_completed(websocket, session_id)
 
         except Exception as e:
-            # Print full stack trace to console for debugging
             print(f"=== WebSocket Error for session {session_id} ===")
             traceback.print_exc()
             print("=== End Error ===")
@@ -70,11 +70,10 @@ class WorkflowService:
         async for event in self.workflow.app.astream_events(
             initial_state, config=config
         ):
-            # Send running message when a node starts
             if event["event"] == "on_chain_start" and event["name"] in [
-                "supervisor",
                 "intake",
                 "triage",
+                "coordinator",
             ]:
                 node_name = event["name"]
                 running_message = self._create_running_agent_update(
@@ -87,11 +86,11 @@ class WorkflowService:
                 "supervisor",
                 "intake",
                 "triage",
+                "coordinator",
             ]:
                 node_name = event["name"]
                 node_output = event["data"]["output"]
 
-                # Yield formatted results for specific nodes
                 async for formatted_message in self._handle_node_completion(
                     node_name, node_output, session_id
                 ):
@@ -113,6 +112,9 @@ class WorkflowService:
 
         elif node_name == "triage" and node_output.get("triage_info"):
             yield await self._create_triage_result(node_output, session_id)
+
+        elif node_name == "coordinator" and node_output.get("available_staff"):
+            yield await self._create_coordinator_result(node_output, session_id)
 
         elif node_name == "supervisor":
             supervisor_message = self._create_supervisor_update(node_output, session_id)
@@ -157,6 +159,27 @@ class WorkflowService:
                 session_id=session_id,
             )
 
+    async def _create_coordinator_result(
+        self, node_output: dict[str, Any], session_id: str
+    ) -> Union[CoordinatorResponseAgentMessage, ErrorAgentMessage]:
+        """Create formatted coordinator result message."""
+
+        try:
+            coordinator_response = ResultMapper.map_node_result(
+                node_output, "coordinator"
+            )
+
+            return CoordinatorResponseAgentMessage(
+                data=coordinator_response,
+                session_id=session_id,
+            )
+        except Exception as e:
+            return ErrorAgentMessage(
+                type=TriageMessageTypeEnum.ERROR_AGENT,
+                error=f"Failed to format coordinator result: {str(e)}",
+                session_id=session_id,
+            )
+
     def _create_supervisor_update(
         self, node_output: dict[str, Any], session_id: str
     ) -> Optional[dict[str, Any]]:
@@ -165,6 +188,7 @@ class WorkflowService:
         last_node = node_output.get("last_node")
         intake_info = node_output.get("intake_conversation_info")
         triage_info = node_output.get("triage_info")
+        available_staff = node_output.get("available_staff")
 
         if last_node == "intake":
             if intake_info:
@@ -196,6 +220,20 @@ class WorkflowService:
                     "session_id": session_id,
                 }
 
+        elif last_node == "coordinator":
+            if available_staff:
+                return {
+                    "type": TriageMessageTypeEnum.START_AGENT,
+                    "name": AgentNameEnum.COORDINATOR,
+                    "message": "Coordinator completed successfully",
+                    "session_id": session_id,
+                }
+            else:
+                return {
+                    "type": TriageMessageTypeEnum.ERROR_AGENT,
+                    "error": "Coordinator completed but no staff available",
+                    "session_id": session_id,
+                }
         return None
 
     def _create_running_agent_update(
@@ -210,7 +248,7 @@ class WorkflowService:
             "coordinator": AgentNameEnum.COORDINATOR,
         }
 
-        agent_name = agent_name_map.get(node_name, AgentNameEnum.COORDINATOR)
+        agent_name = agent_name_map[node_name]  # Will raise KeyError if invalid
 
         return RunningAgentMessage(
             type=TriageMessageTypeEnum.RUNNING_AGENT,

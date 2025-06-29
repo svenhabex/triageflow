@@ -3,6 +3,7 @@ from typing import Any
 
 from src.models import (
     AgentNameEnum,
+    CoordinatorResponseDTO,
     IntakeResponseDTO,
     ResponseAgentMessage,
     TriageResponseDTO,
@@ -47,9 +48,20 @@ class TriageNodeMapper(NodeResultMapper):
         triage_info = state.get("triage_info")
 
         return TriageResponseDTO(
-            risk_level=triage_info.risk_level,
+            esi_level=triage_info.esi_level,
             medical_category=triage_info.medical_category,
             reasoning=triage_info.reasoning,
+        )
+
+
+class CoordinatorNodeMapper(NodeResultMapper):
+    """Mapper for coordinator node results."""
+
+    def map_result(self, state: dict[str, Any]) -> CoordinatorResponseDTO:
+        """Map coordinator node state to CoordinatorResponseDTO."""
+
+        return CoordinatorResponseDTO(
+            available_staff=state.get("available_staff") or [],
         )
 
 
@@ -59,6 +71,7 @@ class ResultMapper:
     _node_mappers: dict[str, NodeResultMapper] = {
         "intake": IntakeNodeMapper(),
         "triage": TriageNodeMapper(),
+        "coordinator": CoordinatorNodeMapper(),
     }
 
     @classmethod

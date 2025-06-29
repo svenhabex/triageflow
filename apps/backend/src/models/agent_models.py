@@ -8,8 +8,9 @@ from typing import Annotated, Literal, TypeVar, Union
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from src.models.intake_models import IntakeResponseDTO
-from src.models.triage_models import TriageResponseDTO
+from .coordiantor_models import CoordinatorResponseDTO
+from .intake_models import IntakeResponseDTO
+from .triage_models import TriageResponseDTO
 
 T = TypeVar("T")
 
@@ -87,8 +88,20 @@ class TriageResponseAgentMessage(TriageMessage):
     data: TriageResponseDTO
 
 
+class CoordinatorResponseAgentMessage(TriageMessage):
+    """WebSocket message for coordinator agent response."""
+
+    type: str = TriageMessageTypeEnum.RESPONSE_AGENT
+    name: Literal[AgentNameEnum.COORDINATOR] = AgentNameEnum.COORDINATOR
+    data: CoordinatorResponseDTO
+
+
 ResponseAgentMessage = Annotated[
-    Union[IntakeResponseAgentMessage, TriageResponseAgentMessage],
+    Union[
+        IntakeResponseAgentMessage,
+        TriageResponseAgentMessage,
+        CoordinatorResponseAgentMessage,
+    ],
     Field(discriminator="name"),
 ]
 
