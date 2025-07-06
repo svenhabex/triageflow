@@ -41,6 +41,7 @@ import {
 import {
   AgentNameEnum,
   MessageSenderEnum,
+  StaffMember,
   TriageMessageTypeEnum,
 } from '@triageflow/shared/models';
 import {
@@ -245,5 +246,11 @@ export class TriageTrackerComponent {
     if (userMessageText) {
       this.userMessages$.next(userMessageText);
     }
+  }
+
+  onAssignStaff(staff: StaffMember): void {
+    this.userMessages$.next(
+      `Assigning staff member ${staff.firstName} ${staff.lastName} to the patient...`,
+    );
   }
 }

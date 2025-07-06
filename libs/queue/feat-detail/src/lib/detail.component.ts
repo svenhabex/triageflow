@@ -23,31 +23,31 @@ export class DetailComponent {
   queueItems = signal<PatientQueueItem[]>([
     {
       id: 1,
-      name: 'Piet Pietersen',
+      name: 'Peter Parker',
       description: 'This is a description',
       type: queueSeverityEnum.ESI1,
     },
     {
       id: 2,
-      name: 'Jan Jansen',
+      name: 'Bruce Wayne',
       description: 'This is a description',
       type: queueSeverityEnum.ESI2,
     },
     {
       id: 3,
-      name: 'Karel Klaassen',
+      name: 'Clark Kent',
       description: 'This is a description',
       type: queueSeverityEnum.ESI3,
     },
     {
       id: 4,
-      name: 'Jef Jeferson',
+      name: 'Katniss Everdeen',
       description: 'This is a description',
       type: queueSeverityEnum.ESI4,
     },
     {
       id: 5,
-      name: 'Jos Joskens',
+      name: 'James Bond',
       description: 'This is a description',
       type: queueSeverityEnum.ESI4,
     },

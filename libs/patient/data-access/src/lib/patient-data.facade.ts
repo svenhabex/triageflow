@@ -20,4 +20,8 @@ export class PatientDataFacade {
   openTriageConnection(sessionId: string): WebSocketSubject<TriageDTO> {
     return this.#patientDataService.openTriageConnection(sessionId);
   }
+
+  assignStaff(staffMemberId: string, sessionId: string): void {
+    this.#patientDataService.assignStaff(staffMemberId, sessionId);
+  }
 }

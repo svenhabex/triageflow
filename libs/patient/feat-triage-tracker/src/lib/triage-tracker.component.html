@@ -15,7 +15,10 @@
           <flow-triage-result [result]="item.data" />
         }
         @case (TriageTrackerOutputTypeEnum.Coordinator) {
-          <flow-coordinator-result [result]="item.data" />
+          <flow-coordinator-result
+            [result]="item.data"
+            (assignStaff)="onAssignStaff($event)"
+          />
         }
       }
     }

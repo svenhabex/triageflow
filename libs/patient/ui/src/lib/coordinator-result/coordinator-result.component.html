@@ -15,6 +15,7 @@
               <th>Role</th>
               <th>Speciality</th>
               <th>Status</th>
+              <th></th>
             </tr>
           </ng-template>
           <ng-template let-staff pTemplate="body">
@@ -29,6 +30,13 @@
                   [severity]="
                     staff.status === 'available' ? 'success' : 'danger'
                   "
+                />
+              </td>
+              <td>
+                <p-button
+                  label="Assign"
+                  severity="success"
+                  (click)="onAssignStaff(staff)"
                 />
               </td>
             </tr>

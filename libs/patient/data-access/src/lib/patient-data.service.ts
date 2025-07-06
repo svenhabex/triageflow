@@ -23,4 +23,11 @@ export class PatientDataService {
       `${this.#config.websocketEndpoint}agents/patient/triage/${sessionId}`,
     );
   }
+
+  assignStaff(staffMemberId: string, sessionId: string): void {
+    this.#http.post('agents/patient/assign-staff', {
+      staffMemberId,
+      sessionId,
+    });
+  }
 }

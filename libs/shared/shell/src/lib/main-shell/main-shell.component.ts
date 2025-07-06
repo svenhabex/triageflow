@@ -25,19 +25,19 @@ export class MainShellComponent {
       items: [
         {
           id: '1',
-          name: 'Piet Pietersen',
+          name: 'Peter Parker',
           description: 'Analyzing symptoms',
           icon: 'pi-user',
         },
         {
           id: '2',
-          name: 'Jan Jansen',
+          name: 'Bruce Wayne',
           description: 'Analyzing symptoms',
           icon: 'pi-user',
         },
         {
           id: '3',
-          name: 'Karel Klaassen',
+          name: 'Katniss Everdeen',
           description: 'Analyzing symptoms',
           icon: 'pi-user',
         },
