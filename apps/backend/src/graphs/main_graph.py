@@ -8,7 +8,12 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
 from src.agents import coordinator_agent, intake_agent, triage_agent
-from src.state import WorkflowState
+from src.state import (
+    CoordinatorAgentState,
+    IntakeAgentState,
+    TriageAgentState,
+    WorkflowState,
+)
 
 INTAKE_NODE = "intake"
 TRIAGE_NODE = "triage"
@@ -76,33 +81,58 @@ class TriageWorkflow:
         return INTAKE_NODE if not state.get("intake_conversation_info") else END
 
     async def _intake_node(self, state: WorkflowState) -> WorkflowState:
-        """Execute the intake agent."""
+        """Execute the intake agent with state mapping."""
 
-        result = await intake_agent.run(state)
+        intake_input = IntakeAgentState(messages=state.get("messages", []))
+
+        intake_result = await intake_agent.run(intake_input)
 
         return {
+            **state,  # Preserve existing global state
             "last_node": INTAKE_NODE,
-            **result,
+            "messages": intake_result.get("messages", []),
+            "patient_info": intake_result.get("patient_info"),
+            "intake_conversation_info": intake_result.get("intake_conversation_info"),
+            "errors": state.get("errors", []) + intake_result.get("errors", []),
         }
 
     async def _triage_node(self, state: WorkflowState) -> WorkflowState:
-        """Execute the triage agent."""
+        """Execute the triage agent with state mapping."""
 
-        result = await triage_agent.run(state)
+        triage_input = TriageAgentState(
+            messages=state.get("messages", []),
+            patient_info=state.get("patient_info"),
+            intake_conversation_info=state.get("intake_conversation_info"),
+        )
+
+        triage_result = await triage_agent.run(triage_input)
 
         return {
-            **result,
+            **state,  # Preserve existing global state
             "last_node": TRIAGE_NODE,
+            "messages": triage_result.get("messages", []),
+            "triage_info": triage_result.get("triage_info"),
+            "errors": state.get("errors", []) + triage_result.get("errors", []),
         }
 
     async def _coordinator_node(self, state: WorkflowState) -> WorkflowState:
-        """Execute the coordinator agent."""
+        """Execute the coordinator agent with state mapping."""
 
-        result = await coordinator_agent.run(state)
+        coordinator_input = CoordinatorAgentState(
+            messages=state.get("messages", []),
+            patient_info=state.get("patient_info"),
+            intake_conversation_info=state.get("intake_conversation_info"),
+            triage_info=state.get("triage_info"),
+        )
+
+        coordinator_result = await coordinator_agent.run(coordinator_input)
 
         return {
-            **result,
+            **state,
             "last_node": COORDINATOR_NODE,
+            "messages": coordinator_result.get("messages", []),
+            "available_staff": coordinator_result.get("available_staff", []),
+            "errors": state.get("errors", []) + coordinator_result.get("errors", []),
         }
 
     async def run(

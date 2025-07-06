@@ -84,7 +84,7 @@ export class TriageTrackerComponent {
     share(),
   );
 
-  private readonly userMessageWithSideEffect$: Observable<TriageTrackerOutput> =
+  readonly #userMessageWithSideEffect$: Observable<TriageTrackerOutput> =
     this.userMessages$.pipe(
       withLatestFrom(this.webSocketSubject$),
       tap(([message, webSocketSubject]) => {
@@ -100,7 +100,7 @@ export class TriageTrackerComponent {
       })),
     );
 
-  private readonly agentResponses$: Observable<TriageTrackerOutput> =
+  readonly #agentResponses$: Observable<TriageTrackerOutput> =
     this.webSocketSubject$.pipe(
       switchMap((webSocketSubject) => webSocketSubject.asObservable()),
       map((response) => {
@@ -186,13 +186,10 @@ export class TriageTrackerComponent {
   );
 
   readonly output$ = merge(
-    this.userMessageWithSideEffect$,
-    this.agentResponses$,
+    this.#userMessageWithSideEffect$,
+    this.#agentResponses$,
   ).pipe(
     scan((acc, curr) => [...acc, curr], [] as TriageTrackerOutput[]),
-    tap((output) => {
-      console.log('output', output);
-    }),
     share(),
   );
 

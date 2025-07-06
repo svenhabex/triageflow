@@ -6,6 +6,7 @@ Compares original intake agent vs optimized version.
 import asyncio
 import os
 
+from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 
 from src.agents.coordinator import CoordinatorAgent
@@ -13,6 +14,9 @@ from src.agents.intake import IntakeAgent
 from src.agents.optimized_intake import OptimizedIntakeAgent
 from src.agents.triage import TriageAgent
 from src.core.llm_monitor import llm_monitor
+from src.state import CoordinatorAgentState, IntakeAgentState, TriageAgentState
+
+load_dotenv()
 
 # Test conversation with patient name
 TEST_CONVERSATION = """
@@ -33,12 +37,11 @@ async def test_original_intake_agent():
     """Test the original intake agent and track LLM requests."""
     print("\n🔍 Testing Original Intake Agent...")
 
-    agent = IntakeAgent(max_iterations=3)
+    agent = IntakeAgent(max_iterations=5)
 
-    initial_state = {
-        "messages": [HumanMessage(content=TEST_CONVERSATION)],
-        "session_id": "original_test_session",
-    }
+    initial_state = IntakeAgentState(
+        messages=[HumanMessage(content=TEST_CONVERSATION)],
+    )
 
     result = await agent.run(initial_state)
 
@@ -56,10 +59,9 @@ async def test_optimized_intake_agent():
 
     agent = OptimizedIntakeAgent(max_iterations=3)
 
-    initial_state = {
-        "messages": [HumanMessage(content=TEST_CONVERSATION)],
-        "session_id": "optimized_test_session",
-    }
+    initial_state = IntakeAgentState(
+        messages=[HumanMessage(content=TEST_CONVERSATION)],
+    )
 
     result = await agent.run(initial_state)
 
@@ -77,10 +79,9 @@ async def test_full_workflow():
 
     # Step 1: Intake
     intake_agent = OptimizedIntakeAgent()
-    initial_state = {
-        "messages": [HumanMessage(content=TEST_CONVERSATION)],
-        "session_id": "full_workflow_session",
-    }
+    initial_state = IntakeAgentState(
+        messages=[HumanMessage(content=TEST_CONVERSATION)],
+    )
 
     intake_result = await intake_agent.run(initial_state)
     print(
@@ -88,8 +89,15 @@ async def test_full_workflow():
     )
 
     # Step 2: Triage
+    # Map intake result to TriageAgentState
+    triage_input = TriageAgentState(
+        messages=intake_result.get("messages", []),
+        patient_info=intake_result.get("patient_info"),
+        intake_conversation_info=intake_result.get("intake_conversation_info"),
+    )
+
     triage_agent = TriageAgent()
-    triage_result = await triage_agent.run(intake_result)
+    triage_result = await triage_agent.run(triage_input)
     print(
         f"✅ Triage completed. Triage info: {triage_result.get('triage_info') is not None}"
     )
@@ -100,8 +108,16 @@ async def test_full_workflow():
         print(f"🏥 Medical Category: {getattr(triage_info, 'medical_category', 'N/A')}")
 
     # Step 3: Coordination
+    # Map triage result to CoordinatorAgentState
+    coordinator_input = CoordinatorAgentState(
+        messages=triage_result.get("messages", []),
+        patient_info=triage_result.get("patient_info"),
+        intake_conversation_info=triage_result.get("intake_conversation_info"),
+        triage_info=triage_result.get("triage_info"),
+    )
+
     coordinator_agent = CoordinatorAgent()
-    final_result = await coordinator_agent.run(triage_result)
+    final_result = await coordinator_agent.run(coordinator_input)
     print(
         f"✅ Coordination completed. Staff found: {len(final_result.get('available_staff', []))}"
     )

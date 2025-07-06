@@ -8,7 +8,7 @@ from langgraph.graph import StateGraph
 
 from src.core.llm_monitor import track_llm_request
 from src.models import StaffMember
-from src.state import WorkflowState
+from src.state import CoordinatorAgentState
 
 COORDINATE_STAFF_ASSIGNMENT_NODE = "coordinate_staff_assignment"
 TOOLS_NODE = "tools"
@@ -154,9 +154,9 @@ class CoordinatorAgent:
         return self._model
 
     def _build_graph(self) -> StateGraph:
-        """Build the coordinator agent graph."""
+        """Build the coordinator agent graph with local state."""
 
-        workflow = StateGraph(WorkflowState, output=WorkflowState)
+        workflow = StateGraph(CoordinatorAgentState, output=CoordinatorAgentState)
 
         workflow.add_node(
             COORDINATE_STAFF_ASSIGNMENT_NODE, self._coordinate_staff_assignment
@@ -172,7 +172,7 @@ class CoordinatorAgent:
 
         return workflow
 
-    def _should_continue(self, state: WorkflowState) -> str:
+    def _should_continue(self, state: CoordinatorAgentState) -> str:
         """Determine whether to continue with tool calling or end."""
         from langgraph.graph import END
 
@@ -209,7 +209,9 @@ class CoordinatorAgent:
 
         return END
 
-    async def _execute_tools(self, state: WorkflowState) -> WorkflowState:
+    async def _execute_tools(
+        self, state: CoordinatorAgentState
+    ) -> CoordinatorAgentState:
         """Execute tools and update state with results."""
         from langchain_core.messages import ToolMessage
 
@@ -311,7 +313,9 @@ class CoordinatorAgent:
         return updated_state
 
     @track_llm_request("coordinator", "_coordinate_staff_assignment", "tool_calling")
-    async def _coordinate_staff_assignment(self, state: WorkflowState) -> WorkflowState:
+    async def _coordinate_staff_assignment(
+        self, state: CoordinatorAgentState
+    ) -> CoordinatorAgentState:
         """
         Coordinate staff assignment based on triage and intake information.
         Uses structured JSON context instead of full message history.
@@ -392,7 +396,7 @@ Start by calling the get_staff_member tool now."""
 
             return error_output
 
-    async def run(self, state: WorkflowState) -> WorkflowState:
+    async def run(self, state: CoordinatorAgentState) -> CoordinatorAgentState:
         """Run the coordinator agent."""
         result = await self.app.ainvoke(state)
 

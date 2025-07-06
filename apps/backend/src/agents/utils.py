@@ -3,22 +3,30 @@ Utility functions for agents in the triage workflow system.
 """
 
 import json
-from typing import Any
+from typing import Any, Union
 
-from src.state import WorkflowState
+from src.state import (
+    CoordinatorAgentState,
+    IntakeAgentState,
+    TriageAgentState,
+    WorkflowState,
+)
 
 
 def build_context_from_state(
-    state: WorkflowState, include_fields: list[str]
+    state: Union[
+        WorkflowState, IntakeAgentState, TriageAgentState, CoordinatorAgentState
+    ],
+    include_fields: list[str],
 ) -> dict[str, Any]:
     """
-    Build context dictionary from workflow state for LLM consumption.
+    Build context dictionary from any agent state for LLM consumption.
 
-    This helper extracts specified fields from the workflow state and converts
+    This helper extracts specified fields from the agent state and converts
     Pydantic models to dictionaries for JSON serialization.
 
     Args:
-        state: The workflow state containing agent outputs and data
+        state: The agent state containing agent outputs and data
         include_fields: List of state field names to include in context
 
     Returns:

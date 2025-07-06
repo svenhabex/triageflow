@@ -6,7 +6,7 @@ from langgraph.graph import END, StateGraph
 
 from src.core.llm_monitor import track_llm_request
 from src.models import TriageInformation
-from src.state import WorkflowState
+from src.state import TriageAgentState
 
 
 def _get_model():
@@ -42,9 +42,9 @@ class TriageAgent:
         return self._model
 
     def _build_graph(self) -> StateGraph:
-        """Build the graph for the triage agent."""
+        """Build the graph for the triage agent with local state."""
 
-        workflow = StateGraph(WorkflowState, output=WorkflowState)
+        workflow = StateGraph(TriageAgentState, output=TriageAgentState)
 
         workflow.add_node(ASSESS_NODE, self._assess)
         workflow.set_entry_point(ASSESS_NODE)
@@ -52,7 +52,7 @@ class TriageAgent:
 
         return workflow
 
-    async def run(self, state: WorkflowState) -> WorkflowState:
+    async def run(self, state: TriageAgentState) -> TriageAgentState:
         """Run the triage agent subgraph."""
 
         result = await self.app.ainvoke(state)
@@ -60,7 +60,7 @@ class TriageAgent:
         return result
 
     @track_llm_request("triage", "_assess", "structured")
-    async def _assess(self, state: WorkflowState) -> WorkflowState:
+    async def _assess(self, state: TriageAgentState) -> TriageAgentState:
         """
         Assess the patient's symptoms and history to determine the appropriate level of care.
         Uses structured JSON context instead of full message history.

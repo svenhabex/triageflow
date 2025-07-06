@@ -10,7 +10,7 @@ from langgraph.graph import END, StateGraph
 
 from src.core.llm_monitor import track_llm_request
 from src.models import IntakeConversationInfo, PatientInfo
-from src.state import WorkflowState
+from src.state import IntakeAgentState
 
 load_dotenv()
 
@@ -156,9 +156,9 @@ class IntakeAgent:
         return self._model
 
     def _build_graph(self) -> StateGraph:
-        """Build the intake agent graph with tool calling capabilities."""
+        """Build the intake agent graph with local state."""
 
-        workflow = StateGraph(WorkflowState, output=WorkflowState)
+        workflow = StateGraph(IntakeAgentState, output=IntakeAgentState)
 
         workflow.add_node(
             EXTRACT_CONVERSATION_INFO_NODE, self._extract_conversation_info
@@ -176,7 +176,7 @@ class IntakeAgent:
 
         return workflow
 
-    def _should_continue(self, state: WorkflowState) -> str:
+    def _should_continue(self, state: IntakeAgentState) -> str:
         """Determine whether to continue with tool calling or end."""
         messages = state.get("messages", [])
 
@@ -194,7 +194,7 @@ class IntakeAgent:
 
         return END
 
-    async def _execute_tools(self, state: WorkflowState) -> WorkflowState:
+    async def _execute_tools(self, state: IntakeAgentState) -> IntakeAgentState:
         """
         Enhanced tool execution node that:
         1. Executes the tools
@@ -265,7 +265,9 @@ class IntakeAgent:
 
         return updated_state
 
-    async def _extract_conversation_info(self, state: WorkflowState) -> WorkflowState:
+    async def _extract_conversation_info(
+        self, state: IntakeAgentState
+    ) -> IntakeAgentState:
         """Extract patient information from the conversation using LLM."""
 
         # Get the last message which should contain the conversation
@@ -285,7 +287,8 @@ class IntakeAgent:
         except Exception as e:
             return {
                 **state,
-                "errors": [f"Error extracting conversation info: {str(e)}"],
+                "errors": state.get("errors", [])
+                + [f"Error extracting conversation info: {str(e)}"],
             }
 
         return {**state, "intake_conversation_info": extracted_info}
@@ -329,7 +332,9 @@ class IntakeAgent:
         return response
 
     @track_llm_request("intake", "_analyze_and_gather_info", "tool_calling")
-    async def _analyze_and_gather_info(self, state: WorkflowState) -> WorkflowState:
+    async def _analyze_and_gather_info(
+        self, state: IntakeAgentState
+    ) -> IntakeAgentState:
         """
         Analyzes intake conversation and coordinates gathering of additional
         patient information using available tools as needed.
@@ -414,7 +419,7 @@ class IntakeAgent:
                 "retry_count": retry_count,
             }
 
-    async def run(self, state: WorkflowState) -> WorkflowState:
+    async def run(self, state: IntakeAgentState) -> IntakeAgentState:
         """Run the intake agent subgraph."""
 
         result = await self.app.ainvoke(state)

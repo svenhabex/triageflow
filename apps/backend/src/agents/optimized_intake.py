@@ -14,7 +14,7 @@ from langgraph.graph import END, StateGraph
 
 from src.core.llm_monitor import track_llm_request
 from src.models import IntakeConversationInfo, PatientInfo
-from src.state import WorkflowState
+from src.state import IntakeAgentState
 
 load_dotenv()
 
@@ -168,7 +168,7 @@ class OptimizedIntakeAgent:
     def _build_graph(self) -> StateGraph:
         """Build the optimized intake agent graph."""
 
-        workflow = StateGraph(WorkflowState, output=WorkflowState)
+        workflow = StateGraph(IntakeAgentState, output=IntakeAgentState)
 
         workflow.add_node(COMBINED_INTAKE_NODE, self._combined_intake_processing)
         workflow.add_node(TOOLS_NODE, self._execute_tools)
@@ -182,7 +182,7 @@ class OptimizedIntakeAgent:
 
         return workflow
 
-    def _should_continue(self, state: WorkflowState) -> str:
+    def _should_continue(self, state: IntakeAgentState) -> str:
         """Determine whether to continue with tool calling or end."""
         messages = state.get("messages", [])
 
@@ -204,7 +204,7 @@ class OptimizedIntakeAgent:
 
         return END
 
-    async def _execute_tools(self, state: WorkflowState) -> WorkflowState:
+    async def _execute_tools(self, state: IntakeAgentState) -> IntakeAgentState:
         """Execute tools and update state with results."""
         messages = state.get("messages", [])
 
@@ -253,8 +253,10 @@ class OptimizedIntakeAgent:
             except Exception as e:
                 # Handle tool execution failures
                 if tool_name == "get_patient_medical_record":
+                    # Ensure patient_info is explicitly set to None when patient lookup fails
                     updated_state["patient_info"] = None
 
+                # Add error message for failed tool calls
                 error_message = ToolMessage(
                     content=f"Unable to retrieve patient record: {str(e)}",
                     tool_call_id=tool_id,
@@ -270,7 +272,9 @@ class OptimizedIntakeAgent:
     @track_llm_request(
         "optimized_intake", "_combined_intake_processing", "structured_with_tools"
     )
-    async def _combined_intake_processing(self, state: WorkflowState) -> WorkflowState:
+    async def _combined_intake_processing(
+        self, state: IntakeAgentState
+    ) -> IntakeAgentState:
         """
         OPTIMIZATION: Single LLM call that both parses conversation AND decides on tool usage.
         This reduces the 2 separate LLM calls in the original intake agent to just 1.
@@ -284,7 +288,8 @@ class OptimizedIntakeAgent:
         if not messages:
             return {
                 **state,
-                "errors": ["No conversation found in messages"],
+                "errors": state.get("errors", [])
+                + ["No conversation found in messages"],
                 "retry_count": retry_count,
             }
 
@@ -301,7 +306,7 @@ class OptimizedIntakeAgent:
         if not conversation:
             return {
                 **state,
-                "errors": ["No conversation content found"],
+                "errors": state.get("errors", []) + ["No conversation content found"],
                 "retry_count": retry_count,
             }
 
@@ -322,50 +327,41 @@ class OptimizedIntakeAgent:
                     "retry_count": retry_count,
                 }
 
-        # Now do the combined analysis and tool coordination
+        # Now handle tool calling for patient information
         system_message = SystemMessage(
-            content="""You are a medical intake coordinator that has ALREADY extracted basic patient information from a conversation.
+            content="""You are a medical intake coordinator with access to the hospital's patient database.
 
-            IMPORTANT: You have already parsed the conversation. Now your job is to:
-            1. Review the extracted patient information 
-            2. Determine if you need additional patient data for complete intake
-            3. Use tools ONLY when medically necessary for patient safety
+            Your role is to:
+            1. Analyze the conversation between nurse and patient
+            2. Determine if additional patient information is needed for complete intake
+            3. Use available tools when medically appropriate for patient safety
 
             MEDICAL SAFETY GUIDELINES:
-            - If a patient name was mentioned in the conversation, you MUST check their medical record
-            - Look for potential medication conflicts, allergy discrepancies, or missing critical information
-            - Only call get_patient_medical_record if you identify a specific patient name
-
-            EFFICIENCY FOCUS:
-            - Don't call tools unless you have a specific patient name from the conversation
-            - Complete the intake with the information you have if no patient name was mentioned
-            - Avoid unnecessary database queries
+            - Always check patient database when a patient name is mentioned
+            - Compare conversation info with existing medical records
+            - Look for medication conflicts, allergy discrepancies, or missing critical information
+            - Ensure complete intake documentation for patient safety
 
             AVAILABLE TOOLS:
-            - get_patient_medical_record: Access patient medical history when you have a patient name"""
+            - get_patient_medical_record: Access complete patient medical history, medications, and allergies
+
+            Extract patient names from the conversation and retrieve their medical records when mentioned."""
         )
 
         context_message = HumanMessage(
-            content=f"""INTAKE ANALYSIS REQUEST:
-
-Original conversation:
-{conversation}
-
-Extracted information: {state.get("intake_conversation_info")}
-
-TASK: Analyze if you need additional patient information for a complete medical intake.
-- If a patient name is clearly mentioned in the conversation, use get_patient_medical_record tool
-- If no patient name is mentioned, complete the intake with available information
-- Focus on medical safety and efficiency"""
+            content=f"""Please analyze this conversation and determine if additional patient information is needed:
+            {conversation}
+            
+            If a patient name is mentioned, please use the get_patient_medical_record tool to retrieve their complete medical history for safety verification."""
         )
 
-        intake_messages = [system_message, context_message]
+        combined_messages = [system_message, context_message]
 
         try:
-            response = await self.model.ainvoke(intake_messages)
+            response = await self.model.ainvoke(combined_messages)
 
             full_messages = state.get("messages", [])
-            updated_messages = full_messages + intake_messages + [response]
+            updated_messages = full_messages + combined_messages + [response]
 
             return {
                 **state,
@@ -384,23 +380,27 @@ TASK: Analyze if you need additional patient information for a complete medical 
     async def _extract_conversation_with_structured_output(
         self, conversation: str
     ) -> IntakeConversationInfo:
-        """Extract patient information using structured output - internal helper."""
+        """Extract conversation information using structured output."""
 
-        system_prompt = """You are a medical intake specialist. 
-        Extract key patient information from the conversation between nurse and patient.
-        
-        Guidelines:
-        - Extract symptoms mentioned by the patient
-        - Look for pain ratings on a 1-10 scale  
-        - Look for medications mentioned by the patient
-        - Look for allergies mentioned by the patient
-        - Summarize the conversation as the chief complaint
-        - Extract any additional notes from the conversation
-        - Be precise and only include information explicitly mentioned
-        - Use null for missing information"""
+        system_prompt = """
+            You are a medical intake specialist.
+            Extract key patient information from the conversation.
+            The conversation is between a nurse and patient.
+            
+            Guidelines:
+            - Extract symptoms mentioned by the patient
+            - Look for pain ratings on a 1-10 scale
+            - Look for medications mentioned by the patient
+            - Look for allergies mentioned by the patient
+            - Summarize the conversation as the chief complaint
+            - Extract any additional notes from the conversation
+            - Be precise and only include information explicitly mentioned
+            - Use null for missing information
+            """
 
         human_prompt = f"""Extract patient information from this conversation:
-        {conversation}"""
+            {conversation}
+            """
 
         messages = [
             SystemMessage(content=system_prompt),
@@ -411,9 +411,10 @@ TASK: Analyze if you need additional patient information for a complete medical 
         structured_model = base_model.with_structured_output(IntakeConversationInfo)
 
         response = await structured_model.ainvoke(messages)
+
         return response
 
-    async def run(self, state: WorkflowState) -> WorkflowState:
+    async def run(self, state: IntakeAgentState) -> IntakeAgentState:
         """Run the optimized intake agent subgraph."""
         result = await self.app.ainvoke(state)
         return result

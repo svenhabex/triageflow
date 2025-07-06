@@ -55,3 +55,52 @@ class WorkflowState(MessagesState):
     def is_reasoning_required(self) -> bool:
         """Check if reasoning is required for triage decisions."""
         return config.triage_agent_config["reasoning_required"]
+
+
+class IntakeAgentState(MessagesState):
+    """
+    Local state for the intake agent.
+    """
+
+    # Output (what intake agent produces)
+    patient_info: Optional[PatientInfo] = None
+    intake_conversation_info: Optional[IntakeConversationInfo] = None
+
+    # Internal control
+    retry_count: int = 0
+    errors: Annotated[list[str], add] = []
+
+
+class TriageAgentState(MessagesState):
+    """
+    Local state for the triage agent.
+    """
+
+    # Input (what triage agent receives)
+    patient_info: Optional[PatientInfo] = None
+    intake_conversation_info: Optional[IntakeConversationInfo] = None
+
+    # Output (what triage agent produces)
+    triage_info: Optional[TriageInformation] = None
+
+    # Internal control
+    retry_count: int = 0
+    errors: Annotated[list[str], add] = []
+
+
+class CoordinatorAgentState(MessagesState):
+    """
+    Local state for the coordinator agent.
+    """
+
+    # Input (what coordinator agent receives)
+    patient_info: Optional[PatientInfo] = None
+    intake_conversation_info: Optional[IntakeConversationInfo] = None
+    triage_info: Optional[TriageInformation] = None
+
+    # Output (what coordinator agent produces)
+    available_staff: Optional[list[StaffMember]] = None
+
+    # Internal control
+    retry_count: int = 0
+    errors: Annotated[list[str], add] = []
