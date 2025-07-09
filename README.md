@@ -27,7 +27,11 @@ Before you begin, ensure you have the following installed:
 2. **Install dependencies**
 
    ```sh
+   # Install Node.js dependencies
    npm install
+
+   # Install Python dependencies for the backend
+   npx nx install backend
    ```
 
 3. **Create environment file**
