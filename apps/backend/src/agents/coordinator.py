@@ -21,7 +21,7 @@ def _get_model():
     """Get the ChatGoogleGenerativeAI model, initialized lazily."""
 
     return ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash-lite-preview-06-17",
+        model="gemini-2.5-flash",
         temperature=1.0,
         max_retries=1,
         google_api_key=os.getenv("GEMINI_API_KEY"),

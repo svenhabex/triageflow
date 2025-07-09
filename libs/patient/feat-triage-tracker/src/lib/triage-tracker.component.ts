@@ -20,6 +20,7 @@ import {
   ElementRef,
   inject,
   input,
+  OnInit,
   ViewChild,
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -69,7 +70,7 @@ import {
   providers: [providePatientDataAccess()],
   host: { class: 'flex items-end py-8 mx-auto max-w-[1000px] min-h-full' },
 })
-export class TriageTrackerComponent {
+export class TriageTrackerComponent implements OnInit {
   readonly #patientDataFacade = inject(PatientDataFacade);
 
   @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLDivElement>;
@@ -218,6 +219,74 @@ export class TriageTrackerComponent {
         }, 0);
       }
     });
+  }
+
+  ngOnInit(): void {
+    // Start typing simulation after a short delay
+    setTimeout(() => {
+      this.simulateTyping(
+        `"Hi there! Welcome to the ER. What’s going on today?
+
+"Hey. Uh, I think I might have a concussion. I hit my head earlier and I’ve been feeling kind of weird since."
+
+"Oh no! That doesn't sound fun. Can you tell me what happened?"
+
+"I was bending down to tie my shoe, and my daughter flung open the freezer door. Nailed me right in the temple."
+
+"Ouch, that sounds painful. Did you lose consciousness at all?"
+
+"No, I stayed conscious, but I’ve had a dull headache ever since. A little blurry vision and some nausea."
+
+"Alright, let's get you checked in. What’s your full name and date of birth?"
+
+"Tony Stark"
+
+"Perfect. Are you currently on any medications?"
+
+"Just a daily allergy pill—loratadine. Nothing else."
+
+"Any allergies to medications or anything we should know about?"
+
+"Nope. No allergies."
+
+"Okay, good to know. How would you rate your pain right now on a scale of 1 to 10?"
+
+"I’d say a 6. It's more of a steady pressure than sharp pain."
+
+"Got it. Any dizziness, confusion, vomiting, or trouble with your speech?"
+
+"I’ve been a little off today. Like, I said ‘fridge cabinet’ earlier without noticing. So… yeah, maybe some light confusion."
+
+"Thanks, Tony. I’m going to bring you into triage in just a moment to check your vitals and do a quick assessment. Just hang tight and we’ll call you shortly."
+
+"Sounds good. Thanks."`,
+      );
+    }, 10000);
+  }
+
+  /**
+   * Simulates typing text into the message form control
+   * @param text The text to type
+   * @param typingSpeed Speed in milliseconds between characters (default: 100ms)
+   */
+  private simulateTyping(text: string, typingSpeed = 20): void {
+    let currentIndex = 0;
+    const messageControl = this.form.get('message');
+
+    if (!messageControl) return;
+
+    // Clear any existing text
+    messageControl.setValue('');
+
+    const typingInterval = setInterval(() => {
+      if (currentIndex < text.length) {
+        const currentText = text.substring(0, currentIndex + 1);
+        messageControl.setValue(currentText);
+        currentIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, typingSpeed);
   }
 
   onKeyDown(event: KeyboardEvent): void {
